@@ -1,28 +1,75 @@
 "use client";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Editor from "@monaco-editor/react";
 import Terminal from "../components/Terminal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import gsap from "gsap";
 
 export default function EditorPage() {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [output, setOutput] = useState("");
   const [terminalHeight, setTerminalHeight] = useState(200);
   const [isResizing, setIsResizing] = useState(false);
+  const [language, setLanguage] = useState("javascript");
+  const terminalWrapperRef = useRef(null);
+  const [isRunning, setIsRunning] = useState(false);
+
 
   function handleRun() {
+    if (isRunning) return;
+
+    setIsRunning(true);
     setIsTerminalOpen(true);
 
-    setOutput((prev) => {
-      const runBlock =
-        `\n\n--------------------\n` +
-        `> Run at ${new Date().toLocaleTimeString()}\n` +
-        `Running...\n` +
-        `Output:\nHello World`;
-
-      return prev + runBlock;
-    });
+    setOutput((prev) => prev + "\n\n> Running...\n");
+    // simulation
+    setTimeout(() => {
+      setOutput((prev) => prev + "Hello World\n");
+      setIsRunning(false);
+    }, 800);
   }
+
+  useEffect(() => {
+    const el = terminalWrapperRef.current;
+    if (!el) return;
+
+    gsap.set(el, {
+      opacity: 0,
+      y: 20,
+      pointerEvents: "none",
+    });
+  }, []);
+
+  useEffect(() => {
+    const el = terminalWrapperRef.current;
+    if (!el) return;
+
+    if (isTerminalOpen) {
+      gsap.to(el, {
+        opacity: 1,
+        y: 0,
+        duration: 0.25,
+        ease: "power2.out",
+        pointerEvents: "auto",
+      });
+    } else {
+      gsap.to(el, {
+        opacity: 0,
+        y: 20,
+        duration: 0.2,
+        ease: "power2.in",
+        pointerEvents: "none",
+      });
+    }
+  }, [isTerminalOpen]);
+
+
 
 
   useEffect(() => {
@@ -79,15 +126,68 @@ export default function EditorPage() {
       <div className="w-1/2 flex flex-col h-screen">
 
         <div className="shrink-0 p-4 border-b border-white/10 flex justify-between items-center">
-          <span className="text-sm text-gray-400">JavaScript</span>
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="
+    w-36
+    bg-black/40
+    border border-white/10
+    hover:bg-white/5
+    transition-colors
+  ">
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+
+            <SelectContent
+              className="
+      bg-[#0b0e14]
+      border border-white/10
+      shadow-2xl
+      rounded-lg
+      p-1
+      animate-in  
+      fade-in
+      zoom-in-95
+      text-white
+    "
+            >
+              {["javascript", "python", "cpp"].map((lang) => (
+                <SelectItem
+                  key={lang}
+                  value={lang}
+                  className="
+          rounded-md
+          px-2 py-1.5
+          hover:bg-white/10
+          focus:bg-white/40
+          cursor-pointer
+          text-white
+        "
+                >
+                  {lang === "cpp" ? "C++" : lang[0].toUpperCase() + lang.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+
 
           <div className="space-x-3">
             <button
-              className="px-4 py-2 rounded-lg bg-white/10"
               onClick={handleRun}
+              disabled={isRunning}
+              className={`
+    px-4 py-2 rounded-lg font-medium
+    transition-all duration-200
+
+    ${isRunning
+                  ? "bg-white/10 text-gray-400 cursor-not-allowed"
+                  : "bg-white/10 hover:bg-white/20"
+                }
+  `}
             >
-              Run
+              {isRunning ? "Running..." : "Run"}
             </button>
+
             <button className="px-4 py-2 rounded-lg bg-green-500 text-black font-semibold">
               Submit
             </button>
@@ -107,22 +207,27 @@ export default function EditorPage() {
             }}
           />
         </div>
+        <div
+          ref={terminalWrapperRef}
+        >
+          {isTerminalOpen && (
+            <>
+              {/* Resize handle */}
+              <div
+                className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
+                onMouseDown={() => setIsResizing(true)}
+              />
 
-        {isTerminalOpen && (
-          <>
-            <div
-              className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
-              onMouseDown={() => setIsResizing(true)}
-            />
-
-            <Terminal
-              output={output}
-              height={terminalHeight}
-              onClear={() => setOutput("")}
-              onClose={() => setIsTerminalOpen(false)}
-            />
-          </>
-        )}
+              {/* Terminal */}
+              <Terminal
+                output={output}
+                height={terminalHeight}
+                onClear={() => setOutput("")}
+                onClose={() => setIsTerminalOpen(false)}
+              />
+            </>
+          )}
+        </div>
 
       </div>
     </div>
