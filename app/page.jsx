@@ -11,18 +11,18 @@ export default function EditorPage() {
   const [isResizing, setIsResizing] = useState(false);
 
   function handleRun() {
-  setIsTerminalOpen(true);
+    setIsTerminalOpen(true);
 
-  setOutput((prev) => {
-    const runBlock =
-      `\n\n--------------------\n` +
-      `> Run at ${new Date().toLocaleTimeString()}\n` +
-      `Running...\n` +
-      `Output:\nHello World`;
+    setOutput((prev) => {
+      const runBlock =
+        `\n\n--------------------\n` +
+        `> Run at ${new Date().toLocaleTimeString()}\n` +
+        `Running...\n` +
+        `Output:\nHello World`;
 
-    return prev + runBlock;
-  });
-}
+      return prev + runBlock;
+    });
+  }
 
 
   useEffect(() => {
@@ -65,8 +65,8 @@ export default function EditorPage() {
 
         <h2 className="font-semibold mt-6 mb-2">Example</h2>
         <pre className="bg-black/30 p-4 rounded-xl text-sm">
-Input: nums = [2,7,11,15], target = 9
-Output: [0,1]
+          Input: nums = [2,7,11,15], target = 9
+          Output: [0,1]
         </pre>
 
         <h2 className="font-semibold mt-6 mb-2">Constraints</h2>
@@ -109,14 +109,21 @@ Output: [0,1]
         </div>
 
         {isTerminalOpen && (
-          <div
-            className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
-            onMouseDown={() => setIsResizing(true)}
-          />
+          <>
+            <div
+              className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
+              onMouseDown={() => setIsResizing(true)}
+            />
+
+            <Terminal
+              output={output}
+              height={terminalHeight}
+              onClear={() => setOutput("")}
+              onClose={() => setIsTerminalOpen(false)}
+            />
+          </>
         )}
-        {isTerminalOpen && (
-          <Terminal output={output} height={terminalHeight} />
-        )}
+
       </div>
     </div>
   );
