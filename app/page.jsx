@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import Editor from "@monaco-editor/react";
 import Terminal from "../components/Terminal";
+import Panel from "../components/Panel"
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 
@@ -35,6 +36,26 @@ export default function EditorPage() {
     }, 800);
   }
 
+  useEffect(() => {
+    gsap.fromTo(
+      ".panel",
+      {
+        opacity: 0,
+        y: 20,
+        rotateX: 6,
+        rotateY: -6,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        rotateX: 0,
+        rotateY: 0,
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0.12,
+      }
+    );
+  }, []);
   useEffect(() => {
     const el = terminalWrapperRef.current;
     if (!el) return;
@@ -100,7 +121,10 @@ export default function EditorPage() {
   }, [isResizing]);
 
   return (
-    <div className="h-screen bg-[#05060f] text-white flex">
+    <div className="h-screen bg-[#05060f] text-white flex" style={{
+        perspective: "1200px",
+        transformStyle: "preserve-3d",
+      }}>
 
       <div className="w-1/2 border-r border-white/10 p-6 overflow-y-auto">
         <h1 className="text-2xl font-bold mb-4">Two Sum</h1>
@@ -193,7 +217,7 @@ export default function EditorPage() {
             </button>
           </div>
         </div>
-
+        <Panel>
         <div className="flex-1 overflow-hidden">
           <Editor
             height="100%"
@@ -207,18 +231,17 @@ export default function EditorPage() {
             }}
           />
         </div>
+        </Panel>
         <div
-          ref={terminalWrapperRef}
+          ref={terminalWrapperRef} className="panel"
         >
           {isTerminalOpen && (
             <>
-              {/* Resize handle */}
               <div
                 className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
                 onMouseDown={() => setIsResizing(true)}
               />
 
-              {/* Terminal */}
               <Terminal
                 output={output}
                 height={terminalHeight}
