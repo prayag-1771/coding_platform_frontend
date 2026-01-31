@@ -11,6 +11,8 @@ import Editor from "@monaco-editor/react";
 import Terminal from "../components/Terminal";
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
+import FocusActions from "../components/FocusedActions";
+
 
 export default function EditorPage() {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
@@ -354,25 +356,36 @@ Output: [0,1]
         </div>
 
         <div
-          ref={editorWrapRef}
-          className={`flex-1 min-h-0 overflow-hidden relative z-20
-          ${questionFocus ? "blur-[2px] pointer-events-none" : ""}
-          ${editorFocus || questionFocus ? "" : "border border-white/10 rounded-md"}
-        `}
-        >
-          <Editor
-            height="100%"
-            language={language}
-            defaultValue={`// write your code here\n\nfunction twoSum(nums, target) {\n\n}`}
-            theme="vs-dark"
-            options={{
-              fontSize: 14,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: false,
-              smoothScrolling: !editorFocus && !questionFocus,
-            }}
-          />
-        </div>
+  ref={editorWrapRef}
+  className={`flex-1 min-h-0 overflow-hidden relative z-20
+    ${questionFocus ? "blur-[2px] pointer-events-none" : ""}
+    border border-white/10 rounded-md
+  `}
+>
+  <Editor
+    height="100%"
+    language={language}
+    defaultValue={`// write your code here\n\nfunction twoSum(nums, target) {\n\n}`}
+    theme="vs-dark"
+    options={{
+      fontSize: 14,
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false,
+      smoothScrolling: !editorFocus && !questionFocus,
+      padding: { top: 12, bottom: 12 }
+    }}
+  />
+
+  
+</div>
+
+{editorFocus && (
+    <FocusActions
+      onRun={handleRun}
+      onSubmit={() => {}}
+      disabled={isRunning}
+    />
+  )}
 
         <div
           ref={terminalWrapRef}
