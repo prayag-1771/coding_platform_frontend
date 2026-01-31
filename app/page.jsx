@@ -27,8 +27,6 @@ export default function EditorPage() {
   const terminalWrapRef = useRef(null);
   const questionWrapRef = useRef(null);
   const focusActiveRef = useRef(false);
-  const lastModeRef = useRef("none");
-
 
   function handleRun() {
     if (isRunning) return;
@@ -70,38 +68,28 @@ export default function EditorPage() {
   }, [isResizing]);
 
   useEffect(() => {
-  const editorEl = editorWrapRef.current;
-  const terminalEl = terminalWrapRef.current;
-  const questionEl = questionWrapRef.current;
+    const editorEl = editorWrapRef.current;
+    const terminalEl = terminalWrapRef.current;
+    const questionEl = questionWrapRef.current;
 
-  if (!editorEl || !terminalEl || !questionEl) return;
+    if (!editorEl || !terminalEl || !questionEl) return;
 
-  gsap.killTweensOf([editorEl, terminalEl, questionEl]);
+    gsap.killTweensOf([editorEl, terminalEl, questionEl]);
 
-  const tl = gsap.timeline({
-    defaults: { ease: "power3.inOut" }
-  });
+    const getRectWithoutTransform = (el) => {
+      const prev = el.style.transform;
+      el.style.transform = "none";
+      const rect = el.getBoundingClientRect();
+      el.style.transform = prev;
+      return rect;
+    };
 
-  const base = {
-    x: 0,
-    y: 0,
-    scale: 1,
-    borderRadius: 0
-  };
+    const tl = gsap.timeline({
+      defaults: { duration: 0.45, ease: "power3.inOut" },
+    });
 
-  const goBase = () => {
-    tl.to(
-      [editorEl, terminalEl, questionEl],
-      { ...base, duration: 0.35 },
-      0
-    );
-  };
-
-  if (questionFocus) {
-    goBase();
-
-    tl.add(() => {
-      const qRect = questionEl.getBoundingClientRect();
+    if (questionFocus) {
+      const qRect = getRectWithoutTransform(questionEl);
 
       const qTargetWidth = window.innerWidth * 0.6;
       const qScale = qTargetWidth / qRect.width;
@@ -112,22 +100,35 @@ export default function EditorPage() {
       const qY =
         window.innerHeight * 0.75 - (qRect.top + qRect.height / 2);
 
-      gsap.to(questionEl, {
-        x: qX,
-        y: qY,
-        scale: qScale,
-        borderRadius: 11,
-        transformOrigin: "center center",
-        duration: 0.45,
-        ease: "power3.inOut"
-      });
-    }, ">");
+      tl.to(
+        questionEl,
+        {
+          x: qX,
+          y: qY,
+          scale: qScale,
+          borderRadius: 11,
+          transformOrigin: "center center",
+        },
+        0
+      );
 
-  } else if (editorFocus) {
-    goBase();
+      tl.to(
+        [editorEl, terminalEl],
+        {
+          x: 0,
+          y: 0,
+          scale: 1,
+          borderRadius: 0,
+        },
+        0
+      );
 
-    tl.add(() => {
-      const qRect = questionEl.getBoundingClientRect();
+      tl.to([editorEl, terminalEl], { opacity: 0.4 }, 0);
+      tl.to(questionEl, { opacity: 1 }, 0);
+    } else if (editorFocus) {
+      const qRect = getRectWithoutTransform(questionEl);
+      const eRect = getRectWithoutTransform(editorEl);
+      const tRect = getRectWithoutTransform(terminalEl);
 
       const qTargetWidth = window.innerWidth * 0.6;
       const qScale = qTargetWidth / qRect.width;
@@ -138,8 +139,6 @@ export default function EditorPage() {
       const qY =
         window.innerHeight / 1.5 - (qRect.top + qRect.height / 2);
 
-      const eRect = editorEl.getBoundingClientRect();
-
       const eTargetWidth = window.innerWidth * 0.6;
       const eScale = eTargetWidth / eRect.width;
 
@@ -148,8 +147,6 @@ export default function EditorPage() {
 
       const eY =
         window.innerHeight / 2 - (eRect.top + eRect.height / 2);
-
-      const tRect = terminalEl.getBoundingClientRect();
 
       const visiblePart = 0.2;
       const visibleW = window.innerWidth * visiblePart;
@@ -167,48 +164,62 @@ export default function EditorPage() {
       const tY =
         targetCenterY - (tRect.top + tRect.height / 2);
 
-      gsap.to(editorEl, {
-        x: eX,
-        y: eY,
-        scale: eScale,
-        borderRadius: 11,
-        transformOrigin: "center center",
-        duration: 0.45,
-        ease: "power3.inOut"
-      });
+      tl.to(
+        editorEl,
+        {
+          x: eX,
+          y: eY,
+          scale: eScale,
+          borderRadius: 11,
+          transformOrigin: "center center",
+        },
+        0
+      );
 
-      gsap.to(terminalEl, {
-        x: tX,
-        y: tY,
-        scale: 1,
-        borderRadius: 11,
-        transformOrigin: "center center",
-        duration: 0.45,
-        ease: "power3.inOut"
-      });
+      tl.to(
+        terminalEl,
+        {
+          x: tX,
+          y: tY,
+          scale: 1,
+          borderRadius: 11,
+          transformOrigin: "center center",
+        },
+        0
+      );
 
-      gsap.to(questionEl, {
-        x: qX,
-        y: qY,
-        scale: qScale,
-        borderRadius: 11,
-        transformOrigin: "center center",
-        duration: 0.45,
-        ease: "power3.inOut"
-      });
-    }, ">");
+      tl.to(
+        questionEl,
+        {
+          x: qX,
+          y: qY,
+          scale: qScale,
+          borderRadius: 11,
+          transformOrigin: "center center",
+        },
+        0
+      );
 
-  } else {
-    goBase();
-  }
+      tl.to(questionEl, { opacity: 0.4 }, 0);
+      tl.to([editorEl, terminalEl], { opacity: 1 }, 0);
+    } else {
+      tl.to(
+        [editorEl, terminalEl, questionEl],
+        {
+          x: 0,
+          y: 0,
+          scale: 1,
+          borderRadius: 0,
+          opacity: 1,
+        },
+        0
+      );
+    }
 
-  focusActiveRef.current = editorFocus || questionFocus;
+    focusActiveRef.current = editorFocus || questionFocus;
 
-  return () => tl.kill();
-
-}, [editorFocus, questionFocus]);
-
-
+    return () => tl.kill();
+  }, [editorFocus, questionFocus]);
 
   useEffect(() => {
     function handleResize() {
@@ -256,7 +267,7 @@ export default function EditorPage() {
         ref={questionWrapRef}
         className={`w-1/2 relative z-10 p-6 overflow-y-auto ${
           editorFocus
-            ? "blur-[2px] opacity-40 pointer-events-none"
+            ? "blur-[2px] pointer-events-none"
             : questionFocus
             ? ""
             : "border-r border-white/15 pr-4"
@@ -343,13 +354,12 @@ Output: [0,1]
         </div>
 
         <div
-  ref={editorWrapRef}
-  className={`flex-1 min-h-0 overflow-hidden relative z-20
-  ${questionFocus ? "blur-[2px] opacity-40 pointer-events-none" : ""}
-  ${editorFocus || questionFocus ? "" : "border border-white/10 rounded-md"}
-`}
->
-
+          ref={editorWrapRef}
+          className={`flex-1 min-h-0 overflow-hidden relative z-20
+          ${questionFocus ? "blur-[2px] pointer-events-none" : ""}
+          ${editorFocus || questionFocus ? "" : "border border-white/10 rounded-md"}
+        `}
+        >
           <Editor
             height="100%"
             language={language}
@@ -365,13 +375,12 @@ Output: [0,1]
         </div>
 
         <div
-  ref={terminalWrapRef}
-  className={`relative z-30 overflow-hidden
-  ${questionFocus ? "blur-[2px] opacity-40 pointer-events-none" : ""}
-  ${editorFocus || questionFocus ? "" : "mt-3 border border-white/10 rounded-md"}
-`}
->
-
+          ref={terminalWrapRef}
+          className={`relative z-30 overflow-hidden
+          ${questionFocus ? "blur-[2px] pointer-events-none" : ""}
+          ${editorFocus || questionFocus ? "" : "mt-3 border border-white/10 rounded-md"}
+        `}
+        >
           {isTerminalOpen && (
             <>
               <div
