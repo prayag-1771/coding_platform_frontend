@@ -21,13 +21,12 @@ export default function EditorPage() {
   const [isRunning, setIsRunning] = useState(false);
 
   const [editorFocus, setEditorFocus] = useState(false);
+  const [questionFocus, setQuestionFocus] = useState(false);
+
   const editorWrapRef = useRef(null);
   const terminalWrapRef = useRef(null);
-  const focusActiveRef = useRef(false);
   const questionWrapRef = useRef(null);
-
-
-
+  const focusActiveRef = useRef(false);
 
   function handleRun() {
     if (isRunning) return;
@@ -67,115 +66,143 @@ export default function EditorPage() {
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizing]);
+
   useEffect(() => {
-    const editorEl = editorWrapRef.current;
-    const terminalEl = terminalWrapRef.current;
-    const questionEl = questionWrapRef.current;
+  const editorEl = editorWrapRef.current;
+  const terminalEl = terminalWrapRef.current;
+  const questionEl = questionWrapRef.current;
 
-    if (!editorEl || !terminalEl || !questionEl) return;
+  if (!editorEl || !terminalEl || !questionEl) return;
 
+  gsap.killTweensOf([editorEl, terminalEl, questionEl]);
 
+  const tl = gsap.timeline({
+    defaults: { duration: 0.45, ease: "power3.inOut" }
+  });
 
+  if (questionFocus) {
 
-    const tl = gsap.timeline({
-      defaults: {
-        duration: 0.45,
-        ease: "power3.inOut"
-      }
+    gsap.set([editorEl, terminalEl, questionEl], {
+      x: 0,
+      y: 0,
+      scale: 1
     });
 
-    if (editorFocus) {
+    const qRect = questionEl.getBoundingClientRect();
 
-      const qRect = questionEl.getBoundingClientRect();
+    const qTargetWidth = window.innerWidth * 0.6;
+    const qScale = qTargetWidth / qRect.width;
 
-      const qTargetWidth = window.innerWidth * 0.6;
-      const qScale = qTargetWidth / qRect.width;
+    const qX =
+      window.innerWidth / 2 - (qRect.left + qRect.width / 2);
 
-      const qX =
-        window.innerWidth / 3.5 - (qRect.left + qRect.width / 2);
-
-      const qY =
-        window.innerHeight / 1.5 - (qRect.top + qRect.height / 2);
+    const qY =
+  window.innerHeight * 0.75 - (qRect.top + qRect.height / 2);
 
 
-      const eRect = editorEl.getBoundingClientRect();
+    tl.to(questionEl, {
+      x: qX,
+      y: qY,
+      scale: qScale,
+      borderRadius: 11,
+      transformOrigin: "center center"
+    }, 0);
 
-      const eTargetWidth = window.innerWidth * 0.6;
-      const eScale = eTargetWidth / eRect.width;
+  } else if (editorFocus) {
 
-      const eX =
-        window.innerWidth / 2 - (eRect.left + eRect.width / 2);
+    gsap.set([editorEl, terminalEl, questionEl], {
+      x: 0,
+      y: 0,
+      scale: 1
+    });
 
-      const eY =
-        window.innerHeight / 2 - (eRect.top + eRect.height / 2);
+    const qRect = questionEl.getBoundingClientRect();
 
-      const tRect = terminalEl.getBoundingClientRect();
+    const qTargetWidth = window.innerWidth * 0.6;
+    const qScale = qTargetWidth / qRect.width;
 
-      const visiblePart = 0.2;
-      const visibleW = window.innerWidth * visiblePart;
-      const visibleH = window.innerHeight * visiblePart;
+    const qX =
+      window.innerWidth / 3.5 - (qRect.left + qRect.width / 2);
 
+    const qY =
+      window.innerHeight / 1.5 - (qRect.top + qRect.height / 2);
 
-      const targetCenterX =
-        window.innerWidth - visibleW / 2;
+    const eRect = editorEl.getBoundingClientRect();
 
-      const targetCenterY =
-        window.innerHeight - visibleH / 2;
+    const eTargetWidth = window.innerWidth * 0.6;
+    const eScale = eTargetWidth / eRect.width;
 
-      const tX =
-        targetCenterX - (tRect.left + tRect.width / 2);
+    const eX =
+      window.innerWidth / 2 - (eRect.left + eRect.width / 2);
 
-      const tY =
-        targetCenterY - (tRect.top + tRect.height / 2);
+    const eY =
+      window.innerHeight / 2 - (eRect.top + eRect.height / 2);
 
-      tl.to(editorEl, {
-        x: eX,
-        y: eY,
-        scale: eScale,
-        borderRadius: 11,
-        transformOrigin: "center center"
-      }, 0);
+    const tRect = terminalEl.getBoundingClientRect();
 
-      tl.to(terminalEl, {
-        x: tX,
-        y: tY,
-        scale: 1,
-        borderRadius: 11,
-        transformOrigin: "center center"
-      }, 0);
+    const visiblePart = 0.2;
+    const visibleW = window.innerWidth * visiblePart;
+    const visibleH = window.innerHeight * visiblePart;
 
-      tl.to(questionEl, {
-        x: qX,
-        y: qY,
-        scale: qScale,
-        borderRadius: 11,
-        transformOrigin: "center center"
-      }, 0);
+    const targetCenterX =
+      window.innerWidth - visibleW / 2;
 
+    const targetCenterY =
+      window.innerHeight - visibleH / 2;
 
-    } else {
+    const tX =
+      targetCenterX - (tRect.left + tRect.width / 2);
 
-      tl.to([editorEl, terminalEl, questionEl], {
-        x: 0,
-        y: 0,
-        scale: 1,
-        borderRadius: 0
-      }, 0);
+    const tY =
+      targetCenterY - (tRect.top + tRect.height / 2);
 
+    tl.to(editorEl, {
+      x: eX,
+      y: eY,
+      scale: eScale,
+      borderRadius: 11,
+      transformOrigin: "center center"
+    }, 0);
 
+    tl.to(terminalEl, {
+      x: tX,
+      y: tY,
+      scale: 1,
+      borderRadius: 11,
+      transformOrigin: "center center"
+    }, 0);
 
-    }
-    focusActiveRef.current = editorFocus;
+    tl.to(questionEl, {
+      x: qX,
+      y: qY,
+      scale: qScale,
+      borderRadius: 11,
+      transformOrigin: "center center"
+    }, 0);
 
-    return () => tl.kill();
+  } else {
 
-  }, [editorFocus, isTerminalOpen]);
+    tl.to([editorEl, terminalEl, questionEl], {
+      x: 0,
+      y: 0,
+      scale: 1,
+      borderRadius: 0
+    }, 0);
+
+  }
+
+  focusActiveRef.current = editorFocus || questionFocus;
+
+  return () => tl.kill();
+
+}, [editorFocus, questionFocus]);
+
 
   useEffect(() => {
     function handleResize() {
       if (!focusActiveRef.current) return;
-
-      setEditorFocus(v => v);
+      setEditorFocus((v) => v);
+      setQuestionFocus((v) => v);
     }
 
     window.addEventListener("resize", handleResize);
@@ -189,30 +216,40 @@ export default function EditorPage() {
 
       if (e.key === "f" || e.key === "F") {
         e.preventDefault();
-        setEditorFocus(v => !v);
+
+        if (questionFocus) {
+          setQuestionFocus(false);
+          setEditorFocus(true);
+        } else if (editorFocus) {
+          setEditorFocus(false);
+          setQuestionFocus(true);
+        } else {
+          setEditorFocus(true);
+        }
       }
 
       if (e.key === "Escape") {
         setEditorFocus(false);
+        setQuestionFocus(false);
       }
     }
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, []);
-
-
-
-
+  }, [editorFocus, questionFocus]);
 
   return (
     <div className="h-screen bg-[#05060f] text-white flex relative overflow-hidden">
       <div
         ref={questionWrapRef}
-        className={`w-1/2 realtive z-10 border-r border-white/10 p-6 overflow-y-auto
-  ${editorFocus ? "blur-[2px] opacity-40 pointer-events-none" : ""}`}
+        className={`w-1/2 relative z-10 p-6 overflow-y-auto ${
+          editorFocus
+            ? "blur-[2px] opacity-40 pointer-events-none"
+            : questionFocus
+            ? ""
+            : "border-r border-white/15 pr-4"
+        }`}
       >
-
         <h1 className="text-2xl font-bold mb-4">Two Sum</h1>
 
         <p className="text-gray-300 mb-4">
@@ -222,8 +259,8 @@ export default function EditorPage() {
 
         <h2 className="font-semibold mt-6 mb-2">Example</h2>
         <pre className="bg-black/30 p-4 rounded-xl text-sm">
-          Input: nums = [2,7,11,15], target = 9
-          Output: [0,1]
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
         </pre>
 
         <h2 className="font-semibold mt-6 mb-2">Constraints</h2>
@@ -233,57 +270,41 @@ export default function EditorPage() {
         </ul>
       </div>
 
-      <div className="w-1/2 flex flex-col h-screen relative">
+      <div className="w-1/2 flex flex-col h-screen relative pl-4">
         <div className="shrink-0 p-4 border-b border-white/10 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger
-                className="
-      w-36
-      bg-black/40
-      border border-white/10
-      hover:bg-white/5
-      transition-colors
-    "
-              >
+              <SelectTrigger className="w-36 bg-black/40 border border-white/10 hover:bg-white/5 transition-colors">
                 <SelectValue placeholder="Language" />
               </SelectTrigger>
 
-              <SelectContent
-                className="
-      bg-[#0b0e14]
-      border border-white/10
-      shadow-2xl
-      rounded-lg
-      p-1
-      animate-in  
-      fade-in
-      zoom-in-95
-      text-white
-    "
-              >
+              <SelectContent className="bg-[#0b0e14] border border-white/10 shadow-2xl rounded-lg p-1 animate-in fade-in zoom-in-95 text-white">
                 {["javascript", "python", "cpp"].map((lang) => (
                   <SelectItem
                     key={lang}
                     value={lang}
-                    className="
-          rounded-md
-          px-2 py-1.5
-          hover:bg-white/10
-          focus:bg-white/40
-          cursor-pointer
-          text-white
-        "
+                    className="rounded-md px-2 py-1.5 hover:bg-white/10 focus:bg-white/40 cursor-pointer text-white"
                   >
-                    {lang === "cpp" ? "C++" : lang[0].toUpperCase() + lang.slice(1)}
+                    {lang === "cpp"
+                      ? "C++"
+                      : lang[0].toUpperCase() + lang.slice(1)}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-
             <button
-              onClick={() => setEditorFocus(v => !v)}
+              onClick={() => {
+                if (questionFocus) {
+                  setQuestionFocus(false);
+                  setEditorFocus(true);
+                } else if (editorFocus) {
+                  setEditorFocus(false);
+                  setQuestionFocus(true);
+                } else {
+                  setEditorFocus(true);
+                }
+              }}
               className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm"
             >
               Focus
@@ -294,24 +315,29 @@ export default function EditorPage() {
             <button
               onClick={handleRun}
               disabled={isRunning}
-              className={`px-4 py-2 rounded-lg font-medium ${isRunning
-                ? "bg-white/10 text-gray-400 cursor-not-allowed"
-                : "bg-white/10 hover:bg-white/20"
-                }`}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                isRunning
+                  ? "bg-white/10 text-gray-400 cursor-not-allowed"
+                  : "bg-white/10 hover:bg-white/20"
+              }`}
             >
               {isRunning ? "Running..." : "Run"}
             </button>
 
-            <button className="px-4 py-2 rounded-lg bg-green-500 text-black font-semibold">
+            <button className="px-4 py-2 rounded-lg bg-violet-400 text-black font-semibold">
               Submit
             </button>
           </div>
         </div>
 
         <div
-          ref={editorWrapRef}
-          className="flex-1 min-h-0 overflow-hidden relative z-20"
-        >
+  ref={editorWrapRef}
+  className={`flex-1 min-h-0 overflow-hidden relative z-20
+  ${questionFocus ? "blur-[2px] opacity-40 pointer-events-none" : ""}
+  ${editorFocus || questionFocus ? "" : "border border-white/10 rounded-md"}
+`}
+>
+
           <Editor
             height="100%"
             language={language}
@@ -321,29 +347,28 @@ export default function EditorPage() {
               fontSize: 14,
               minimap: { enabled: false },
               scrollBeyondLastLine: false,
-              smoothScrolling: !editorFocus
+              smoothScrolling: !editorFocus && !questionFocus,
             }}
-
           />
         </div>
 
         <div
-          ref={terminalWrapRef}
-          className="relative z-30 overflow-hidden"
-        >
-
-
+  ref={terminalWrapRef}
+  className={`relative z-30 overflow-hidden
+  ${questionFocus ? "blur-[2px] opacity-40 pointer-events-none" : ""}
+  ${editorFocus || questionFocus ? "" : "mt-3 border border-white/10 rounded-md"}
+`}
+>
 
           {isTerminalOpen && (
             <>
               <div
                 className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
                 onMouseDown={() => {
-                  if (editorFocus) return;
+                  if (editorFocus || questionFocus) return;
                   setIsResizing(true);
                 }}
               />
-
 
               <Terminal
                 output={output}
@@ -357,12 +382,16 @@ export default function EditorPage() {
       </div>
 
       <div
-        onClick={() => setEditorFocus(false)}
-        className={`fixed inset-0 z-10 bg-black/40 transition-opacity
-    ${editorFocus ? "opacity-100" : "opacity-0 pointer-events-none"}
-  `}
+        onClick={() => {
+          setEditorFocus(false);
+          setQuestionFocus(false);
+        }}
+        className={`fixed inset-0 z-10 bg-black/40 transition-opacity ${
+          editorFocus || questionFocus
+            ? "opacity-100"
+            : "opacity-0 pointer-events-none"
+        }`}
       />
-
     </div>
   );
 }
