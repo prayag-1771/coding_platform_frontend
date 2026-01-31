@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/select";
 import Editor from "@monaco-editor/react";
 import Terminal from "../components/Terminal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import gsap from "gsap";
 
 export default function EditorPage() {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
@@ -19,6 +20,11 @@ export default function EditorPage() {
   const [language, setLanguage] = useState("javascript");
   const [isRunning, setIsRunning] = useState(false);
 
+  const [editorFocus, setEditorFocus] = useState(false);
+  const editorWrapRef = useRef(null);
+const terminalWrapRef = useRef(null);
+
+  
   function handleRun() {
     if (isRunning) return;
 
@@ -57,10 +63,94 @@ export default function EditorPage() {
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizing]);
+useEffect(() => {
+  const editorEl = editorWrapRef.current;
+const terminalEl = terminalWrapRef.current;
+
+if (!editorEl || !terminalEl) return;
+
+
+
+  const tl = gsap.timeline({
+    defaults: {
+      duration: 0.45,
+      ease: "power3.inOut"
+    }
+  });
+
+  if (editorFocus) {
+
+    const eRect = editorEl.getBoundingClientRect();
+
+    const eTargetWidth = window.innerWidth * 0.6;
+    const eScale = eTargetWidth / eRect.width;
+
+    const eX =
+      window.innerWidth / 2 - (eRect.left + eRect.width / 2);
+
+    const eY =
+      window.innerHeight / 2 - (eRect.top + eRect.height / 2);
+
+    const tRect = terminalEl.getBoundingClientRect();
+
+    const visiblePart = 0.25;
+const visibleW = window.innerWidth * visiblePart;
+const visibleH = window.innerHeight * visiblePart;
+
+
+    const targetCenterX =
+      window.innerWidth - visibleW / 2;
+
+    const targetCenterY =
+      window.innerHeight - visibleH / 2;
+
+    const tX =
+      targetCenterX - (tRect.left + tRect.width / 2);
+
+    const tY =
+      targetCenterY - (tRect.top + tRect.height / 2);
+
+    tl.to(editorEl, {
+      x: eX,
+      y: eY,
+      scale: eScale,
+      borderRadius: 11,
+      transformOrigin: "center center"
+    }, 0);
+
+    tl.to(terminalEl, {
+      x: tX,
+      y: tY,
+      scale: 1,
+      borderRadius: 11,
+      transformOrigin: "center center"
+    }, 0);
+
+  } else {
+
+    tl.to([editorEl, terminalEl], {
+      x: 0,
+      y: 0,
+      scale: 1,
+      borderRadius: 0
+    }, 0);
+
+  }
+
+  return () => tl.kill();
+
+}, [editorFocus, isTerminalOpen]);
+
+
+
+
 
   return (
-    <div className="h-screen bg-[#05060f] text-white flex">
-      <div className="w-1/2 border-r border-white/10 p-6 overflow-y-auto">
+    <div className="h-screen bg-[#05060f] text-white flex relative overflow-hidden">
+      <div
+        className={`w-1/2 border-r border-white/10 p-6 overflow-y-auto transition-all
+        ${editorFocus ? "blur-sm opacity-40 pointer-events-none" : ""}`}
+      >
         <h1 className="text-2xl font-bold mb-4">Two Sum</h1>
 
         <p className="text-gray-300 mb-4">
@@ -81,21 +171,24 @@ Output: [0,1]
         </ul>
       </div>
 
-      <div className="w-1/2 flex flex-col h-screen">
+      <div className="w-1/2 flex flex-col h-screen relative">
         <div className="shrink-0 p-4 border-b border-white/10 flex justify-between items-center">
-          <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger className="
-    w-36
-    bg-black/40
-    border border-white/10
-    hover:bg-white/5
-    transition-colors
-  ">
-              <SelectValue placeholder="Language" />
-            </SelectTrigger>
+          <div className="flex items-center gap-3">
+            <Select value={language} onValueChange={setLanguage}>
+  <SelectTrigger
+    className="
+      w-36
+      bg-black/40
+      border border-white/10
+      hover:bg-white/5
+      transition-colors
+    "
+  >
+    <SelectValue placeholder="Language" />
+  </SelectTrigger>
 
-            <SelectContent
-              className="
+  <SelectContent
+    className="
       bg-[#0b0e14]
       border border-white/10
       shadow-2xl
@@ -106,12 +199,12 @@ Output: [0,1]
       zoom-in-95
       text-white
     "
-            >
-              {["javascript", "python", "cpp"].map((lang) => (
-                <SelectItem
-                  key={lang}
-                  value={lang}
-                  className="
+  >
+    {["javascript", "python", "cpp"].map((lang) => (
+      <SelectItem
+        key={lang}
+        value={lang}
+        className="
           rounded-md
           px-2 py-1.5
           hover:bg-white/10
@@ -119,12 +212,21 @@ Output: [0,1]
           cursor-pointer
           text-white
         "
-                >
-                  {lang === "cpp" ? "C++" : lang[0].toUpperCase() + lang.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      >
+        {lang === "cpp" ? "C++" : lang[0].toUpperCase() + lang.slice(1)}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
+
+            <button
+              onClick={() => setEditorFocus(v => !v)}
+              className="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm"
+            >
+              Focus
+            </button>
+          </div>
 
           <div className="space-x-3">
             <button
@@ -145,7 +247,10 @@ Output: [0,1]
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div
+          ref={editorWrapRef}
+          className="flex-1 min-h-0 overflow-hidden relative z-20"
+        >
           <Editor
             height="100%"
             language={language}
@@ -159,22 +264,38 @@ Output: [0,1]
           />
         </div>
 
-        {isTerminalOpen && (
-          <>
-            <div
-              className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
-              onMouseDown={() => setIsResizing(true)}
-            />
+        <div
+  ref={terminalWrapRef}
+  className="relative z-30 overflow-hidden" 
+>
 
-            <Terminal
-              output={output}
-              height={terminalHeight}
-              onClear={() => setOutput("")}
-              onClose={() => setIsTerminalOpen(false)}
-            />
-          </>
-        )}
+
+
+          {isTerminalOpen && (
+            <>
+              <div
+                className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
+                onMouseDown={() => setIsResizing(true)}
+              />
+
+              <Terminal
+                output={output}
+                height={terminalHeight}
+                onClear={() => setOutput("")}
+                onClose={() => setIsTerminalOpen(false)}
+              />
+            </>
+          )}
+        </div>
       </div>
+
+      <div
+  onClick={() => setEditorFocus(false)}
+  className={`fixed inset-0 z-10 bg-black/40 transition-opacity
+    ${editorFocus ? "opacity-100" : "opacity-0 pointer-events-none"}
+  `}
+/>
+
     </div>
   );
 }
