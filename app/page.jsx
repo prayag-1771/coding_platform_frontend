@@ -56,6 +56,59 @@ export default function EditorPage() {
       setIsRunning(false);
     }, 800);
   }
+  useEffect(() => {
+  const saved = localStorage.getItem("editor-layout");
+
+  if (!saved) return;
+
+  try {
+    const data = JSON.parse(saved);
+
+    if (typeof data.terminalHeight === "number") {
+      setTerminalHeight(data.terminalHeight);
+    }
+
+    if (typeof data.isTerminalOpen === "boolean") {
+      setIsTerminalOpen(data.isTerminalOpen);
+    }
+
+    if (data.focus === "editor") {
+      setEditorFocus(true);
+      setQuestionFocus(false);
+    }
+
+    if (data.focus === "question") {
+      setEditorFocus(false);
+      setQuestionFocus(true);
+    }
+
+    if (data.focus === "none") {
+      setEditorFocus(false);
+      setQuestionFocus(false);
+    }
+
+    if (typeof data.language === "string") {
+      setLanguage(data.language);
+    }
+
+  } catch {}
+}, []);
+
+  useEffect(() => {
+  const focus =
+    editorFocus ? "editor" :
+    questionFocus ? "question" :
+    "none";
+
+  const data = {
+    terminalHeight,
+    isTerminalOpen,
+    focus,
+    language
+  };
+
+  localStorage.setItem("editor-layout", JSON.stringify(data));
+}, [terminalHeight, isTerminalOpen, editorFocus, questionFocus, language]);
 
   useEffect(() => {
     function handleMouseMove(e) {
@@ -68,7 +121,7 @@ export default function EditorPage() {
         return next;
       });
     }
-
+    
 
     function handleMouseUp() {
       setIsResizing(false);
@@ -82,6 +135,20 @@ export default function EditorPage() {
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizing]);
+
+  useEffect(() => {
+  localStorage.setItem("editor-terminal-output", output);
+}, [output]);
+
+useEffect(() => {
+  const savedOutput = localStorage.getItem("editor-terminal-output");
+  if (savedOutput !== null) {
+    setOutput(savedOutput);
+  }
+}, []);
+
+
+
   useEffect(() => {
     function onKey(e) {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "p") {
