@@ -25,7 +25,7 @@ function SelectValue({
 }
 
 function SelectTrigger({
-  className,
+  className, 
   size = "default",
   children,
   ...props

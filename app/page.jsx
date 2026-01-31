@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Select,
   SelectContent,
@@ -8,9 +9,7 @@ import {
 } from "@/components/ui/select";
 import Editor from "@monaco-editor/react";
 import Terminal from "../components/Terminal";
-import Panel from "../components/Panel"
-import { useState, useEffect, useRef } from "react";
-import gsap from "gsap";
+import { useState, useEffect } from "react";
 
 export default function EditorPage() {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
@@ -18,9 +17,7 @@ export default function EditorPage() {
   const [terminalHeight, setTerminalHeight] = useState(200);
   const [isResizing, setIsResizing] = useState(false);
   const [language, setLanguage] = useState("javascript");
-  const terminalWrapperRef = useRef(null);
   const [isRunning, setIsRunning] = useState(false);
-
 
   function handleRun() {
     if (isRunning) return;
@@ -28,70 +25,13 @@ export default function EditorPage() {
     setIsRunning(true);
     setIsTerminalOpen(true);
 
-    setOutput((prev) => prev + "\n\n> Running...\n");
-    // simulation
+    setOutput((p) => p + "\n\n> Running...\n");
+
     setTimeout(() => {
-      setOutput((prev) => prev + "Hello World\n");
+      setOutput((p) => p + "Hello World\n");
       setIsRunning(false);
     }, 800);
   }
-
-  useEffect(() => {
-    gsap.fromTo(
-      ".panel",
-      {
-        opacity: 0,
-        y: 20,
-        rotateX: 6,
-        rotateY: -6,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        rotateX: 0,
-        rotateY: 0,
-        duration: 0.8,
-        ease: "power3.out",
-        stagger: 0.12,
-      }
-    );
-  }, []);
-  useEffect(() => {
-    const el = terminalWrapperRef.current;
-    if (!el) return;
-
-    gsap.set(el, {
-      opacity: 0,
-      y: 20,
-      pointerEvents: "none",
-    });
-  }, []);
-
-  useEffect(() => {
-    const el = terminalWrapperRef.current;
-    if (!el) return;
-
-    if (isTerminalOpen) {
-      gsap.to(el, {
-        opacity: 1,
-        y: 0,
-        duration: 0.25,
-        ease: "power2.out",
-        pointerEvents: "auto",
-      });
-    } else {
-      gsap.to(el, {
-        opacity: 0,
-        y: 20,
-        duration: 0.2,
-        ease: "power2.in",
-        pointerEvents: "none",
-      });
-    }
-  }, [isTerminalOpen]);
-
-
-
 
   useEffect(() => {
     function handleMouseMove(e) {
@@ -99,10 +39,8 @@ export default function EditorPage() {
 
       setTerminalHeight((prev) => {
         const next = prev - e.movementY;
-
         if (next < 80) return 80;
         if (next > 400) return 400;
-
         return next;
       });
     }
@@ -121,23 +59,19 @@ export default function EditorPage() {
   }, [isResizing]);
 
   return (
-    <div className="h-screen bg-[#05060f] text-white flex" style={{
-        perspective: "1200px",
-        transformStyle: "preserve-3d",
-      }}>
-
+    <div className="h-screen bg-[#05060f] text-white flex">
       <div className="w-1/2 border-r border-white/10 p-6 overflow-y-auto">
         <h1 className="text-2xl font-bold mb-4">Two Sum</h1>
 
         <p className="text-gray-300 mb-4">
-          Given an array of integers nums and an integer target, return
-          indices of the two numbers such that they add up to target.
+          Given an array of integers nums and an integer target, return indices
+          of the two numbers such that they add up to target.
         </p>
 
         <h2 className="font-semibold mt-6 mb-2">Example</h2>
         <pre className="bg-black/30 p-4 rounded-xl text-sm">
-          Input: nums = [2,7,11,15], target = 9
-          Output: [0,1]
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
         </pre>
 
         <h2 className="font-semibold mt-6 mb-2">Constraints</h2>
@@ -148,7 +82,6 @@ export default function EditorPage() {
       </div>
 
       <div className="w-1/2 flex flex-col h-screen">
-
         <div className="shrink-0 p-4 border-b border-white/10 flex justify-between items-center">
           <Select value={language} onValueChange={setLanguage}>
             <SelectTrigger className="
@@ -193,21 +126,15 @@ export default function EditorPage() {
             </SelectContent>
           </Select>
 
-
-
           <div className="space-x-3">
             <button
               onClick={handleRun}
               disabled={isRunning}
-              className={`
-    px-4 py-2 rounded-lg font-medium
-    transition-all duration-200
-
-    ${isRunning
+              className={`px-4 py-2 rounded-lg font-medium ${
+                isRunning
                   ? "bg-white/10 text-gray-400 cursor-not-allowed"
                   : "bg-white/10 hover:bg-white/20"
-                }
-  `}
+              }`}
             >
               {isRunning ? "Running..." : "Run"}
             </button>
@@ -217,11 +144,11 @@ export default function EditorPage() {
             </button>
           </div>
         </div>
-        <Panel>
-        <div className="flex-1 overflow-hidden">
+
+        <div className="flex-1 min-h-0 overflow-hidden">
           <Editor
             height="100%"
-            defaultLanguage="javascript"
+            language={language}
             defaultValue={`// write your code here\n\nfunction twoSum(nums, target) {\n\n}`}
             theme="vs-dark"
             options={{
@@ -231,27 +158,22 @@ export default function EditorPage() {
             }}
           />
         </div>
-        </Panel>
-        <div
-          ref={terminalWrapperRef} className="panel"
-        >
-          {isTerminalOpen && (
-            <>
-              <div
-                className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
-                onMouseDown={() => setIsResizing(true)}
-              />
 
-              <Terminal
-                output={output}
-                height={terminalHeight}
-                onClear={() => setOutput("")}
-                onClose={() => setIsTerminalOpen(false)}
-              />
-            </>
-          )}
-        </div>
+        {isTerminalOpen && (
+          <>
+            <div
+              className="h-1 w-full bg-white/5 hover:bg-white/10 cursor-row-resize shrink-0"
+              onMouseDown={() => setIsResizing(true)}
+            />
 
+            <Terminal
+              output={output}
+              height={terminalHeight}
+              onClear={() => setOutput("")}
+              onClose={() => setIsTerminalOpen(false)}
+            />
+          </>
+        )}
       </div>
     </div>
   );
