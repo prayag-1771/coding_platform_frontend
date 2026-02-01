@@ -373,23 +373,33 @@ export default function EditorPage() {
 
   useEffect(() => {
     function handleKey(e) {
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
 
-      if (e.key === "f" || e.key === "F") {
-        e.preventDefault();
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") return;
 
-        if (questionFocus) {
-          setQuestionFocus(false);
-          setEditorFocus(true);
-        } else if (editorFocus) {
-          setEditorFocus(false);
-          setQuestionFocus(true);
-        } else {
-          setEditorFocus(true);
-        }
+    if (
+  editorRef.current?.hasTextFocus() &&
+  !((e.ctrlKey || e.metaKey) && e.key === "\\")
+) return;
+
+
+    const tag = document.activeElement?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+    if ((e.ctrlKey || e.metaKey) && e.key === "\\") {
+      e.preventDefault();
+
+      if (questionFocus) {
+        setQuestionFocus(false);
+        setEditorFocus(true);
+      } else if (editorFocus) {
+        setEditorFocus(false);
+        setQuestionFocus(true);
+      } else {
+        setEditorFocus(true);
       }
 
+      return;
+    }
       if (e.key === "Escape") {
         setEditorFocus(false);
         setQuestionFocus(false);
