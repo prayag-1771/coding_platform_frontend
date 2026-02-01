@@ -14,8 +14,9 @@ import gsap from "gsap";
 import FocusActions from "../components/FocusedActions";
 import CommandPalette from "../components/CommandPalette";
 import useEditorCommands from "../components/useEditorCommands";
-
-
+import { questions } from "../components/Questions";
+import { runTestsJS } from "../components/runTestsJS";
+import { handleSubmit } from "../components/HandleSubmit"
 
 export default function EditorPage() {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
@@ -25,90 +26,125 @@ export default function EditorPage() {
   const [language, setLanguage] = useState("javascript");
   const [isRunning, setIsRunning] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  
+  const [currentQuestionId, setCurrentQuestionId] = useState(questions[0].id);
+  const currentQuestion = questions.find(q => q.id === currentQuestionId);
+
+
+
   const [editorFocus, setEditorFocus] = useState(false);
   const [questionFocus, setQuestionFocus] = useState(false);
 
   const commands = useEditorCommands({
-  setEditorFocus,
-  setQuestionFocus,
-  setIsTerminalOpen,
-  setLanguage,
-  handleRun
-});
+    setEditorFocus,
+    setQuestionFocus,
+    setIsTerminalOpen,
+    setLanguage,
+    handleRun
+  });
 
 
   const editorWrapRef = useRef(null);
   const terminalWrapRef = useRef(null);
   const questionWrapRef = useRef(null);
   const focusActiveRef = useRef(false);
+  const terminalRestoredRef = useRef(false);
+  const editorRef = useRef(null);
+
+
 
   function handleRun() {
+    if (!editorRef.current) return;
+
     if (isRunning) return;
 
     setIsRunning(true);
     setIsTerminalOpen(true);
-
-    setOutput((p) => p + "\n\n> Running...\n");
+    setOutput("> Running tests...\n\n");
 
     setTimeout(() => {
-      setOutput((p) => p + "Hello World\n");
+      if (language !== "javascript") {
+        setOutput("> Only JavaScript runner is implemented right now.\n");
+        setIsRunning(false);
+        return;
+      }
+
+      const code = editorRef.current.getValue();
+
+      const fnName =
+        currentQuestion.starterCode.javascript
+          .match(/function\s+([a-zA-Z0-9_]+)/)?.[1];
+
+      const result = runTestsJS(
+        code,
+        currentQuestion.tests,
+        fnName
+      );
+
+      setOutput(result);
       setIsRunning(false);
-    }, 800);
+    }, 150);
   }
-  useEffect(() => {
-  const saved = localStorage.getItem("editor-layout");
-
-  if (!saved) return;
-
-  try {
-    const data = JSON.parse(saved);
-
-    if (typeof data.terminalHeight === "number") {
-      setTerminalHeight(data.terminalHeight);
-    }
-
-    if (typeof data.isTerminalOpen === "boolean") {
-      setIsTerminalOpen(data.isTerminalOpen);
-    }
-
-    if (data.focus === "editor") {
-      setEditorFocus(true);
-      setQuestionFocus(false);
-    }
-
-    if (data.focus === "question") {
-      setEditorFocus(false);
-      setQuestionFocus(true);
-    }
-
-    if (data.focus === "none") {
-      setEditorFocus(false);
-      setQuestionFocus(false);
-    }
-
-    if (typeof data.language === "string") {
-      setLanguage(data.language);
-    }
-
-  } catch {}
-}, []);
 
   useEffect(() => {
-  const focus =
-    editorFocus ? "editor" :
-    questionFocus ? "question" :
-    "none";
+    const saved = localStorage.getItem("editor-layout");
 
-  const data = {
-    terminalHeight,
-    isTerminalOpen,
-    focus,
-    language
-  };
+    if (!saved) return;
 
-  localStorage.setItem("editor-layout", JSON.stringify(data));
-}, [terminalHeight, isTerminalOpen, editorFocus, questionFocus, language]);
+    try {
+      const data = JSON.parse(saved);
+
+      if (typeof data.terminalHeight === "number") {
+        setTerminalHeight(data.terminalHeight);
+      }
+
+      if (typeof data.isTerminalOpen === "boolean") {
+        setIsTerminalOpen(data.isTerminalOpen);
+      }
+
+      if (data.focus === "editor") {
+        setEditorFocus(true);
+        setQuestionFocus(false);
+      }
+
+      if (data.focus === "question") {
+        setEditorFocus(false);
+        setQuestionFocus(true);
+      }
+
+      if (data.focus === "none") {
+        setEditorFocus(false);
+        setQuestionFocus(false);
+      }
+
+      if (typeof data.language === "string") {
+        setLanguage(data.language);
+      }
+
+    } catch { }
+  }, []);
+
+  useEffect(() => {
+    const code = currentQuestion.starterCode[language];
+    if (!editorRef.current) return;
+    editorRef.current.setValue(code);
+  }, [currentQuestionId, language]);
+
+
+  useEffect(() => {
+    const focus =
+      editorFocus ? "editor" :
+        questionFocus ? "question" :
+          "none";
+
+    const data = {
+      terminalHeight,
+      isTerminalOpen,
+      focus,
+      language
+    };
+
+    localStorage.setItem("editor-layout", JSON.stringify(data));
+  }, [terminalHeight, isTerminalOpen, editorFocus, questionFocus, language]);
 
   useEffect(() => {
     function handleMouseMove(e) {
@@ -121,7 +157,7 @@ export default function EditorPage() {
         return next;
       });
     }
-    
+
 
     function handleMouseUp() {
       setIsResizing(false);
@@ -136,16 +172,24 @@ export default function EditorPage() {
     };
   }, [isResizing]);
 
-  useEffect(() => {
-  localStorage.setItem("editor-terminal-output", output);
-}, [output]);
 
-useEffect(() => {
-  const savedOutput = localStorage.getItem("editor-terminal-output");
-  if (savedOutput !== null) {
-    setOutput(savedOutput);
-  }
-}, []);
+  useEffect(() => {
+    const savedOutput = localStorage.getItem("editor-terminal-output");
+
+    if (savedOutput !== null) {
+      setOutput(savedOutput);
+    }
+
+    terminalRestoredRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!terminalRestoredRef.current) return;
+
+    localStorage.setItem("editor-terminal-output", output);
+  }, [output]);
+
+
 
 
 
@@ -361,18 +405,37 @@ useEffect(() => {
       <div
         ref={questionWrapRef}
         className={`w-1/2 relative z-10 p-6 overflow-y-auto ${editorFocus
-            ? "blur-[2px] pointer-events-none"
-            : questionFocus
-              ? ""
-              : "border-r border-white/15 pr-4"
+          ? "blur-[2px] pointer-events-none"
+          : questionFocus
+            ? ""
+            : "border-r border-white/15 pr-4"
           }`}
       >
-        <h1 className="text-2xl font-bold mb-4">Two Sum</h1>
+        <Select
+          value={currentQuestionId}
+          onValueChange={setCurrentQuestionId}
+        >
+          <SelectTrigger className="w-44 bg-black/40 border border-white/10">
+            <SelectValue placeholder="Question" />
+          </SelectTrigger>
+
+          <SelectContent className="bg-[#0b0e14] border border-white/10 shadow-2xl rounded-lg p-1 animate-in fade-in zoom-in-95 text-white">
+            {questions.map(q => (
+              <SelectItem key={q.id} value={q.id}>
+                {q.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select><br></br>
+
+        <h1 className="text-2xl font-bold mb-4">
+          {currentQuestion.title}
+        </h1>
 
         <p className="text-gray-300 mb-4">
-          Given an array of integers nums and an integer target, return indices
-          of the two numbers such that they add up to target.
+          {currentQuestion.description}
         </p>
+
 
         <h2 className="font-semibold mt-6 mb-2">Example</h2>
         <pre className="bg-black/30 p-4 rounded-xl text-sm">
@@ -433,16 +496,20 @@ useEffect(() => {
               onClick={handleRun}
               disabled={isRunning}
               className={`px-4 py-2 rounded-lg font-medium ${isRunning
-                  ? "bg-white/10 text-gray-400 cursor-not-allowed"
-                  : "bg-white/10 hover:bg-white/20"
+                ? "bg-white/10 text-gray-400 cursor-not-allowed"
+                : "bg-white/10 hover:bg-white/20"
                 }`}
             >
               {isRunning ? "Running..." : "Run"}
             </button>
 
-            <button className="px-4 py-2 rounded-lg bg-violet-400 text-black font-semibold" >
+            <button
+              onClick={handleSubmit}
+              className="px-4 py-2 rounded-lg bg-violet-400 text-black font-semibold"
+            >
               Submit
             </button>
+
           </div>
         </div>
 
@@ -454,6 +521,9 @@ useEffect(() => {
   `}
         >
           <Editor
+            onMount={(editor) => {
+              editorRef.current = editor;
+            }}
             height="100%"
             language={language}
             defaultValue={`// write your code here\n\nfunction twoSum(nums, target) {\n\n}`}
@@ -512,15 +582,15 @@ useEffect(() => {
           setQuestionFocus(false);
         }}
         className={`fixed inset-0 z-10 bg-black/40 transition-opacity ${editorFocus || questionFocus
-            ? "opacity-100"
-            : "opacity-0 pointer-events-none"
+          ? "opacity-100"
+          : "opacity-0 pointer-events-none"
           }`}
       />
       <CommandPalette
-  open={paletteOpen}
-  onClose={() => setPaletteOpen(false)}
-  commands={commands}
-/>
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        commands={commands}
+      />
 
 
     </div>
