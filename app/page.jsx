@@ -27,6 +27,8 @@ export default function EditorPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(questions[0].id);
+  const [customInput, setCustomInput] = useState("");
+
   const currentQuestion = questions.find(q => q.id === currentQuestionId);
 
 
@@ -49,6 +51,11 @@ export default function EditorPage() {
   const focusActiveRef = useRef(false);
   const terminalRestoredRef = useRef(false);
   const editorRef = useRef(null);
+
+
+  const accessToken = process.env.NEXT_PUBLIC_API_KEY;
+
+
 
 
 
@@ -223,6 +230,7 @@ export default function EditorPage() {
       return rect;
     };
 
+
     const tl = gsap.timeline({
       defaults: { duration: 0.45, ease: "power3.inOut" },
     });
@@ -374,32 +382,32 @@ export default function EditorPage() {
   useEffect(() => {
     function handleKey(e) {
 
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") return;
 
-    if (
-  editorRef.current?.hasTextFocus() &&
-  !((e.ctrlKey || e.metaKey) && e.key === "\\")
-) return;
+      if (
+        editorRef.current?.hasTextFocus() &&
+        !((e.ctrlKey || e.metaKey) && e.key === "\\") && !(e.key === "Escape")
+      ) return;
 
 
-    const tag = document.activeElement?.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA") return;
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
 
-    if ((e.ctrlKey || e.metaKey) && e.key === "\\") {
-      e.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && e.key === "\\") {
+        e.preventDefault();
 
-      if (questionFocus) {
-        setQuestionFocus(false);
-        setEditorFocus(true);
-      } else if (editorFocus) {
-        setEditorFocus(false);
-        setQuestionFocus(true);
-      } else {
-        setEditorFocus(true);
+        if (questionFocus) {
+          setQuestionFocus(false);
+          setEditorFocus(true);
+        } else if (editorFocus) {
+          setEditorFocus(false);
+          setQuestionFocus(true);
+        } else {
+          setEditorFocus(true);
+        }
+
+        return;
       }
-
-      return;
-    }
       if (e.key === "Escape") {
         setEditorFocus(false);
         setQuestionFocus(false);
@@ -476,7 +484,7 @@ export default function EditorPage() {
                     className="rounded-md px-2 py-1.5 hover:bg-white/10 focus:bg-white/40 cursor-pointer text-white"
                   >
                     {lang === "cpp"
-                      ? "C++"
+                      ? "C"
                       : lang[0].toUpperCase() + lang.slice(1)}
                   </SelectItem>
                 ))}
@@ -514,7 +522,16 @@ export default function EditorPage() {
             </button>
 
             <button
-              onClick={handleSubmit}
+              onClick={() => handleSubmit(
+                setIsTerminalOpen,
+                setOutput,
+                language,
+                editorRef,
+                currentQuestion,
+                accessToken,
+                customInput
+              )
+              }
               className="px-4 py-2 rounded-lg bg-violet-400 text-black font-semibold"
             >
               Submit
@@ -530,6 +547,7 @@ export default function EditorPage() {
     border border-white/10 rounded-md
   `}
         >
+
           <Editor
             onMount={(editor) => {
               editorRef.current = editor;
@@ -553,7 +571,16 @@ export default function EditorPage() {
         {editorFocus && (
           <FocusActions
             onRun={handleRun}
-            onSubmit={() => { }}
+            onSubmit={() => {
+              handleSubmit(
+                setIsTerminalOpen,
+                setOutput,
+                language,
+                editorRef,
+                currentQuestion,
+                accessToken
+              )
+            }}
             disabled={isRunning}
           />
         )}
