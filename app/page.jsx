@@ -17,6 +17,10 @@ import useEditorCommands from "../components/useEditorCommands";
 import { questions } from "../components/Questions";
 import { runTestsJS } from "../components/runTestsJS";
 import { handleSubmit } from "../components/HandleSubmit"
+import BestScoreBadge from "../components/BestScoreBadge";
+
+
+
 
 export default function EditorPage() {
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
@@ -446,9 +450,15 @@ export default function EditorPage() {
           </SelectContent>
         </Select><br></br>
 
-        <h1 className="text-2xl font-bold mb-4">
-          {currentQuestion.title}
-        </h1>
+        <div className="flex items-center justify-between pb-4">
+  <h1 className="text-2xl font-bold">
+    {currentQuestion.title}
+  </h1>
+
+  <BestScoreBadge questionId={currentQuestion.id} />
+</div>
+
+
 
         <p className="text-gray-300 mb-4">
           {currentQuestion.description}
@@ -511,7 +521,15 @@ export default function EditorPage() {
 
           <div className="space-x-3">
             <button
-              onClick={handleRun}
+              onClick={() => handleSubmit(
+                setIsTerminalOpen,
+                setOutput,
+                language,
+                editorRef,
+                currentQuestion,
+                accessToken,
+                customInput
+              )}
               disabled={isRunning}
               className={`px-4 py-2 rounded-lg font-medium ${isRunning
                 ? "bg-white/10 text-gray-400 cursor-not-allowed"

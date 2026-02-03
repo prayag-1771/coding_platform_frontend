@@ -1,21 +1,22 @@
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-
-export async function submitJob(accessToken, language, code, stdin) {
-
+export async function submitJob(
+  accessToken,
+  language,
+  code,
+  inputs
+) {
   const body = {
     language,
-    code
+    code,
+    inputs
   };
-
-  if (stdin && stdin.length > 0) {
-    body.stdin = stdin;
-  }
 
   const res = await fetch(`${BASE_URL}/submit`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+
       "X-API-Key": accessToken
     },
     body: JSON.stringify(body)
@@ -24,37 +25,30 @@ export async function submitJob(accessToken, language, code, stdin) {
   let json;
   try {
     json = await res.json();
-  } catch (e) {
+  } catch {
     throw new Error("Submit API returned invalid JSON");
   }
 
-  if (!res.ok) {
+  if (!res.ok || !json.success) {
     throw new Error(json?.error || "Submit failed");
   }
 
-  console.log("SUBMIT RESPONSE =", json);
+  const jobId = json?.data?.job_id;
 
-const job_id = json.data.job_id;
-
-if (!job_id) {
-  throw new Error("Submit API did not return a job id");
-}
-
-
-  if (!job_id) {
+  if (!jobId) {
     throw new Error("Submit API did not return a job id");
   }
 
-  return job_id;
+  return jobId;
 }
 
 
-export async function pollJobResult(accessToken, job_id) {
+export async function pollJobResult(accessToken, jobId) {
 
   while (true) {
 
     const res = await fetch(
-      `${BASE_URL}/result/${job_id}`,
+      `${BASE_URL}/result/${jobId}`,
       {
         headers: {
           "X-API-Key": accessToken
@@ -65,24 +59,25 @@ export async function pollJobResult(accessToken, job_id) {
     let json;
     try {
       json = await res.json();
-    } catch (e) {
+    } catch {
       throw new Error("Result API returned invalid JSON");
     }
 
-    if (!res.ok) {
+    if (!res.ok || !json.success) {
       throw new Error(json?.error || "Result fetch failed");
     }
 
-    const data = json?.data ?? json;
+    const data = json.data;
 
     if (!data || !data.status) {
       throw new Error("Invalid result payload from executor");
     }
 
-    if (data.status !== "QUEUED" && data.status !== "RUNNING") {
-      return data;
+    if (data.status === "QUEUED" || data.status === "RUNNING") {
+      await new Promise(r => setTimeout(r, 800));
+      continue;
     }
 
-    await new Promise(r => setTimeout(r, 800));
+    return data;
   }
 }

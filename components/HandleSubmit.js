@@ -1,5 +1,8 @@
 import { runTestsJS } from "./runTestsJS";
-import { submitJob, pollJobResult } from "./codeExecutorApi.js";
+import { runRemoteTests } from "./runRemoteTests";
+import { saveBestScore } from "./bestScore";
+
+
 
 export async function handleSubmit(
   setIsTerminalOpen,
@@ -16,7 +19,6 @@ export async function handleSubmit(
   const code = editorRef.current.getValue();
 
   if (language === "javascript") {
-
     try {
       const fnName =
         currentQuestion.starterCode.javascript
@@ -29,6 +31,12 @@ export async function handleSubmit(
       );
 
       setOutput(result + "\n\nSubmission finished.");
+      saveBestScore(
+  currentQuestion.id,
+  currentQuestion.tests.length,
+  currentQuestion.tests.length
+);
+
     } catch (e) {
       setOutput("Runtime error:\n" + e.message);
     }
@@ -45,45 +53,25 @@ export async function handleSubmit(
     language === "cpp" ? "c" : language;
 
   try {
+    setOutput("> Running testcases on server...\n");
 
-    setOutput("> Running on server...\n");
+    const summary = await runRemoteTests({
+  language: execLanguage,
+  code,
+  tests: currentQuestion.tests,
+  accessToken,
+  onProgress: (msg) => {
+    setOutput(prev => prev + msg);
+  }
+});
 
-    const jobId = await submitJob(
-      accessToken,
-      execLanguage,
-      code,
-      stdin
-    );
+saveBestScore(
+  currentQuestion.id,
+  summary.passed,
+  summary.total
+);
 
-    const result = await pollJobResult(
-      accessToken,
-      jobId
-    );
-
-    if (result.status === "ACCEPTED") {
-      setOutput(
-        (result.stdout || "") +
-        "\n\nSubmission finished."
-      );
-      return;
-    }
-
-    if (
-      result.status === "RUNTIME_ERROR" ||
-      result.status === "COMPILE_ERROR" ||
-      result.status === "TIME_LIMIT_EXCEEDED" ||
-      result.status === "SYSTEM_ERROR"
-    ) {
-      setOutput(
-        `[${result.status}]\n` +
-        (result.stderr || "")
-      );
-      return;
-    }
-
-    setOutput(
-      `[${result.status}]`
-    );
+    setOutput(prev => prev + "\nSubmission finished.");
 
   } catch (e) {
     setOutput("Execution failed:\n" + e.message);
