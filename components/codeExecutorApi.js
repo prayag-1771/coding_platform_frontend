@@ -34,10 +34,12 @@ export async function submitJob(accessToken, language, code, stdin) {
 
   console.log("SUBMIT RESPONSE =", json);
 
-const job_id =
-  json?.id ??
-  json?.job_id ??
-  json?.data?.id;
+const job_id = json.data.job_id;
+
+if (!job_id) {
+  throw new Error("Submit API did not return a job id");
+}
+
 
   if (!job_id) {
     throw new Error("Submit API did not return a job id");
