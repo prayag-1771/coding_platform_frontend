@@ -14,7 +14,6 @@ import gsap from "gsap";
 import FocusActions from "../components/FocusedActions";
 import CommandPalette from "../components/CommandPalette";
 import useEditorCommands from "../components/useEditorCommands";
-import { questions } from "../components/Questions";
 import { runTestsJS } from "../components/runTestsJS";
 import { handleSubmit } from "../components/HandleSubmit"
 import BestScoreBadge from "../components/BestScoreBadge";
@@ -30,10 +29,13 @@ export default function EditorPage() {
   const [language, setLanguage] = useState("javascript");
   const [isRunning, setIsRunning] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [currentQuestionId, setCurrentQuestionId] = useState(questions[0].id);
+  const [currentQuestionId, setCurrentQuestionId] = useState(null);
   const [customInput, setCustomInput] = useState("");
+  const [problems, setProblems] = useState([]);
+const [currentProblem, setCurrentProblem] = useState(null);
 
-  const currentQuestion = questions.find(q => q.id === currentQuestionId);
+const currentQuestion = currentProblem;
+
 
 
 
@@ -87,7 +89,8 @@ export default function EditorPage() {
 
       const result = runTestsJS(
         code,
-        currentQuestion.tests,
+        currentQuestion.testcases
+,
         fnName
       );
 
@@ -95,6 +98,34 @@ export default function EditorPage() {
       setIsRunning(false);
     }, 150);
   }
+
+  useEffect(() => {
+  async function loadList() {
+    const res = await fetch("/api/problems/list");
+    const data = await res.json();
+
+    setProblems(data);
+
+    if (data.length > 0) {
+      setCurrentQuestionId(data[0].id);
+    }
+  }
+
+  loadList();
+}, []);
+
+useEffect(() => {
+  if (!currentQuestionId) return;
+
+  async function loadProblem() {
+    const res = await fetch(`/api/problems/${currentQuestionId}`);
+    const data = await res.json();
+    setCurrentProblem(data);
+  }
+
+  loadProblem();
+}, [currentQuestionId]);
+
 
   useEffect(() => {
     const saved = localStorage.getItem("editor-layout");
@@ -135,11 +166,14 @@ export default function EditorPage() {
   }, []);
 
   useEffect(() => {
-    const code = currentQuestion.starterCode[language];
-    if (!editorRef.current) return;
-    editorRef.current.setValue(code);
-  }, [currentQuestionId, language]);
+  if (!currentQuestion || !editorRef.current) return;
 
+  let key = language;
+  if (language === "javascript") key = "java";
+
+  const code = currentQuestion.starterCode?.[key] || "";
+  editorRef.current.setValue(code);
+}, [currentQuestion, language]);
 
   useEffect(() => {
     const focus =
@@ -422,6 +456,9 @@ export default function EditorPage() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [editorFocus, questionFocus]);
 
+  if (!currentQuestion) return null;
+
+
   return (
     <div className="h-screen bg-[#05060f] text-white flex relative overflow-hidden">
       <div
@@ -442,7 +479,7 @@ export default function EditorPage() {
           </SelectTrigger>
 
           <SelectContent className="bg-[#0b0e14] border border-white/10 shadow-2xl rounded-lg p-1 animate-in fade-in zoom-in-95 text-white">
-            {questions.map(q => (
+            {problems.map(q => (
               <SelectItem key={q.id} value={q.id}>
                 {q.title}
               </SelectItem>
@@ -461,7 +498,8 @@ export default function EditorPage() {
 
 
         <p className="text-gray-300 mb-4">
-          {currentQuestion.description}
+          {currentQuestion.statement
+}
         </p>
 
 
