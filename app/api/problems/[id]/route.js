@@ -9,7 +9,6 @@ export async function GET(request) {
     const url = new URL(request.url);
     const parts = url.pathname.split("/");
 
-    // /api/problems/<id>
     const id = parts[parts.length - 1];
 
     if (!id) {
@@ -44,6 +43,12 @@ export async function GET(request) {
         { status: 500 }
       );
     }
+
+    obj.timeLimit = obj.timeLimit ?? 1000;
+obj.memoryLimit = obj.memoryLimit ?? 256;
+obj.topic = obj.topic ?? [];
+obj.difficulty = obj.difficulty ?? "easy";
+
 
     return NextResponse.json(obj);
 

@@ -1,9 +1,10 @@
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
     const body = await req.json();
-
     const { text, difficulty, language } = body;
 
     if (!text) {
@@ -27,6 +28,7 @@ Convert the given idea into a VALID JSON object with this exact structure:
   "timeLimitMs": number,
   "memoryLimitMb": number,
   "starterCode": {
+    "javascript": string,
     "cpp": string,
     "python": string,
     "java": string
@@ -49,6 +51,8 @@ Rules:
 - At least 5 hidden testcases
 - The problem must be original
 - Testcases must match the statement exactly
+- starterCode.javascript must be a valid JavaScript function template
+- The response must start with { and end with }
 `;
 
     const userPrompt = `
@@ -56,18 +60,18 @@ Problem idea / text:
 ${text}
 
 Difficulty: ${difficulty || "medium"}
-Preferred language: ${language || "cpp"}
+Preferred language: ${language || "javascript"}
 `;
 
-    // mock LLM call for now
     const aiResponse = await callYourLLM(systemPrompt, userPrompt);
 
     let problem;
     try {
       problem = JSON.parse(aiResponse);
-    } catch (e) {
+    } catch (err) {
+      console.error("OLLAMA PARSE ERROR:", aiResponse);
       return NextResponse.json(
-        { error: "AI did not return valid JSON", raw: aiResponse },
+        { error: "Model did not return valid JSON", raw: aiResponse },
         { status: 500 }
       );
     }
@@ -75,45 +79,39 @@ Preferred language: ${language || "cpp"}
     return NextResponse.json(problem);
 
   } catch (err) {
-    console.error(err);
+    console.error("OLLAMA ERROR:", err);
     return NextResponse.json(
-      { error: "Internal error" },
+      { error: err?.message || String(err) },
       { status: 500 }
     );
   }
 }
 
 
-/*
- Temporary mock LLM.
- This lets you test your UI and flow before wiring a real AI API.
-*/
 async function callYourLLM(systemPrompt, userPrompt) {
-  return JSON.stringify({
-    id: "sample-1",
-    title: "Sum of two numbers",
-    statement: "Given two integers, print their sum.",
-    difficulty: "easy",
-    tags: ["math", "io"],
-    timeLimitMs: 1000,
-    memoryLimitMb: 256,
-    starterCode: {
-      cpp:
-        "#include <bits/stdc++.h>\nusing namespace std;\nint main(){int a,b;cin>>a>>b;cout<<a+b;return 0;}",
-      python:
-        "a,b=map(int,input().split())\nprint(a+b)",
-      java:
-        "import java.util.*;\npublic class Main{\n  public static void main(String[] args){\n    Scanner sc=new Scanner(System.in);\n    int a=sc.nextInt();\n    int b=sc.nextInt();\n    System.out.print(a+b);\n  }\n}"
-    },
-    testcases: [
-      { id: "t1", stdin: "1 2\n", expected: "3", visibility: "sample", weight: 1 },
-      { id: "t2", stdin: "5 7\n", expected: "12", visibility: "sample", weight: 1 },
+  const prompt = `${systemPrompt}\n\n${userPrompt}`;
 
-      { id: "h1", stdin: "10 20\n", expected: "30", visibility: "hidden", weight: 1 },
-      { id: "h2", stdin: "0 0\n", expected: "0", visibility: "hidden", weight: 1 },
-      { id: "h3", stdin: "-1 1\n", expected: "0", visibility: "hidden", weight: 1 },
-      { id: "h4", stdin: "100 200\n", expected: "300", visibility: "hidden", weight: 1 },
-      { id: "h5", stdin: "999 1\n", expected: "1000", visibility: "hidden", weight: 1 }
-    ]
+  const res = await fetch("http://localhost:11434/api/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "mistral",
+      prompt: prompt,
+      stream: false,
+      options: {
+        temperature: 0.2
+      }
+    })
   });
+
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error("Ollama error: " + t);
+  }
+
+  const data = await res.json();
+
+  return data.response.trim();
 }

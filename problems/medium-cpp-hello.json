@@ -1,0 +1,52 @@
+{
+  "id": "medium-cpp-hello",
+  "title": "Hello World in C++",
+  "statement": "Write a program that prints 'Hello, World!' to the console.",
+  "difficulty": "medium",
+  "tags": [
+    "cpp",
+    "output"
+  ],
+  "timeLimitMs": 1000,
+  "memoryLimitMb": 64,
+  "starterCode": {
+    "cpp": "// Your code here"
+  },
+  "testcases": [
+    {
+      "id": "testcase-1",
+      "stdin": "",
+      "expected": "Hello, World!\n",
+      "visibility": "sample",
+      "weight": 1
+    },
+    {
+      "id": "testcase-2",
+      "stdin": "",
+      "expected": "Hello, World!",
+      "visibility": "hidden",
+      "weight": 0.5
+    },
+    {
+      "id": "testcase-3",
+      "stdin": "",
+      "expected": "Hello, World!\n\n",
+      "visibility": "hidden",
+      "weight": 0.5
+    },
+    {
+      "id": "testcase-4",
+      "stdin": "",
+      "expected": "   Hello, World!   ",
+      "visibility": "hidden",
+      "weight": 0.25
+    },
+    {
+      "id": "testcase-5",
+      "stdin": "",
+      "expected": "Hello, World!\n\t",
+      "visibility": "hidden",
+      "weight": 0.25
+    }
+  ]
+}

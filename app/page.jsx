@@ -34,7 +34,6 @@ export default function EditorPage() {
   const [problems, setProblems] = useState([]);
 const [currentProblem, setCurrentProblem] = useState(null);
 
-const currentQuestion = currentProblem;
 
 
 
@@ -63,41 +62,53 @@ const currentQuestion = currentProblem;
 
 
 
+  function formatJudgeOutput(result) {
+  let text = `Verdict: ${result.verdict}\n`;
+  text += `Score: ${result.score} / ${result.total}\n\n`;
+
+  for (const r of result.results) {
+    text += `Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}\n`;
+
+    if (!r.passed) {
+      text += `Input:\n${r.input}\n`;
+      text += `Expected:\n${r.expected}\n`;
+      text += `Actual:\n${r.actual}\n\n`;
+    }
+  }
+
+  return text;
+}
 
 
   function handleRun() {
-    if (!editorRef.current) return;
+  if (!editorRef.current) return;
+  if (!currentProblem) return;
+  if (isRunning) return;
 
-    if (isRunning) return;
+  setIsRunning(true);
+  setIsTerminalOpen(true);
+  setOutput("> Running sample tests...\n\n");
 
-    setIsRunning(true);
-    setIsTerminalOpen(true);
-    setOutput("> Running tests...\n\n");
-
-    setTimeout(() => {
-      if (language !== "javascript") {
-        setOutput("> Only JavaScript runner is implemented right now.\n");
-        setIsRunning(false);
-        return;
-      }
-
-      const code = editorRef.current.getValue();
-
-      const fnName =
-        currentQuestion.starterCode.javascript
-          .match(/function\s+([a-zA-Z0-9_]+)/)?.[1];
-
-      const result = runTestsJS(
-        code,
-        currentQuestion.testcases
-,
-        fnName
-      );
-
-      setOutput(result);
+  setTimeout(() => {
+    if (language !== "javascript") {
+      setOutput("> Only JavaScript runner is implemented right now.\n");
       setIsRunning(false);
-    }, 150);
-  }
+      return;
+    }
+
+    const code = editorRef.current.getValue();
+
+    const sampleTests = currentProblem.testcases.filter(
+      (t) => t.visibility === "sample"
+    );
+
+    const result = runTestsJS(code, sampleTests);
+
+    setOutput(formatJudgeOutput(result));
+    setIsRunning(false);
+  }, 150);
+}
+
 
   useEffect(() => {
   async function loadList() {
@@ -166,14 +177,14 @@ useEffect(() => {
   }, []);
 
   useEffect(() => {
-  if (!currentQuestion || !editorRef.current) return;
+  if (!currentProblem || !editorRef.current) return;
 
-  let key = language;
-  if (language === "javascript") key = "java";
+const key = language;
 
-  const code = currentQuestion.starterCode?.[key] || "";
+
+  const code = currentProblem.starterCode?.[key] || "";
   editorRef.current.setValue(code);
-}, [currentQuestion, language]);
+}, [currentProblem, language]);
 
   useEffect(() => {
     const focus =
@@ -456,7 +467,8 @@ useEffect(() => {
     return () => window.removeEventListener("keydown", handleKey);
   }, [editorFocus, questionFocus]);
 
-  if (!currentQuestion) return null;
+if (!currentProblem) return null;
+
 
 
   return (
@@ -489,16 +501,16 @@ useEffect(() => {
 
         <div className="flex items-center justify-between pb-4">
   <h1 className="text-2xl font-bold">
-    {currentQuestion.title}
+    {currentProblem.title}
   </h1>
 
-  <BestScoreBadge questionId={currentQuestion.id} />
+  <BestScoreBadge questionId={currentProblem.id} />
 </div>
 
 
 
         <p className="text-gray-300 mb-4">
-          {currentQuestion.statement
+          {currentProblem.statement
 }
         </p>
 
@@ -559,35 +571,28 @@ useEffect(() => {
 
           <div className="space-x-3">
             <button
-              onClick={() => handleSubmit(
-                setIsTerminalOpen,
-                setOutput,
-                language,
-                editorRef,
-                currentQuestion,
-                accessToken,
-                customInput
-              )}
-              disabled={isRunning}
-              className={`px-4 py-2 rounded-lg font-medium ${isRunning
-                ? "bg-white/10 text-gray-400 cursor-not-allowed"
-                : "bg-white/10 hover:bg-white/20"
-                }`}
-            >
-              {isRunning ? "Running..." : "Run"}
-            </button>
+  onClick={handleRun}
+  disabled={isRunning}
+  className={`px-4 py-2 rounded-lg font-medium ${
+    isRunning
+      ? "bg-white/10 text-gray-400 cursor-not-allowed"
+      : "bg-white/10 hover:bg-white/20"
+  }`}
+>
+  {isRunning ? "Running..." : "Run"}
+</button>
+
 
             <button
               onClick={() => handleSubmit(
-                setIsTerminalOpen,
-                setOutput,
-                language,
-                editorRef,
-                currentQuestion,
-                accessToken,
-                customInput
-              )
-              }
+  setIsTerminalOpen,
+  setOutput,
+  language,
+  editorRef,
+  currentProblem,
+  accessToken
+)}
+
               className="px-4 py-2 rounded-lg bg-violet-400 text-black font-semibold"
             >
               Submit
@@ -610,7 +615,7 @@ useEffect(() => {
             }}
             height="100%"
             language={language}
-            defaultValue={`// write your code here\n\nfunction twoSum(nums, target) {\n\n}`}
+            defaultValue={`// Write your code here\n// Read input from stdin and print output`}
             theme="vs-dark"
             options={{
               fontSize: 14,
@@ -629,13 +634,14 @@ useEffect(() => {
             onRun={handleRun}
             onSubmit={() => {
               handleSubmit(
-                setIsTerminalOpen,
-                setOutput,
-                language,
-                editorRef,
-                currentQuestion,
-                accessToken
-              )
+  setIsTerminalOpen,
+  setOutput,
+  language,
+  editorRef,
+  currentProblem,
+  accessToken
+)
+
             }}
             disabled={isRunning}
           />

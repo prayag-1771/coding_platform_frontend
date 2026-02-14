@@ -1,28 +1,45 @@
-export function runTestsJS(userCode, tests, fnName) {
-  const logs = [];
+export function runTestsJS(userCode, testcases) {
+  let total = 0;
+  let score = 0;
+  const results = [];
 
-  try {
-    const fn = new Function(
-      userCode + `\nreturn ${fnName};`
-    )();
+  for (const tc of testcases) {
+    total += tc.weight ?? 1;
 
-    tests.forEach((t, i) => {
-      const result = fn(...t.input);
+    let actual = "";
+    let passed = false;
 
-      const pass =
-        JSON.stringify(result) === JSON.stringify(t.output);
+    try {
+      actual = simulateIO(userCode, tc.input);
 
-      logs.push(
-        `Test ${i + 1}: ${pass ? "PASS" : "FAIL"}\n` +
-        `  input: ${JSON.stringify(t.input)}\n` +
-        `  expected: ${JSON.stringify(t.output)}\n` +
-        `  received: ${JSON.stringify(result)}\n`
-      );
+      passed =
+        actual.trim() === tc.expectedOutput.trim();
+
+    } catch (e) {
+      actual = "Runtime Error: " + e.message;
+      passed = false;
+    }
+
+    if (passed) score += tc.weight ?? 1;
+
+    results.push({
+      id: tc.id,
+      passed,
+      input: tc.input,
+      expected: tc.expectedOutput,
+      actual,
+      weight: tc.weight ?? 1
     });
-
-  } catch (e) {
-    logs.push("Runtime error:\n" + e.message);
   }
 
-  return logs.join("\n");
+  let verdict = "Wrong Answer";
+  if (score === total) verdict = "Accepted";
+  else if (score > 0) verdict = "Partial";
+
+  return {
+    verdict,
+    score,
+    total,
+    results
+  };
 }

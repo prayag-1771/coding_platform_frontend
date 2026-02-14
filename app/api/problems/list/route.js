@@ -29,7 +29,8 @@ export async function GET() {
           id: obj.id,
           title: obj.title,
           difficulty: obj.difficulty,
-          tags: obj.tags || []
+          topic: obj.topic || []
+
         });
       } catch {
       }

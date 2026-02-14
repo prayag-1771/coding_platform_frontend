@@ -3,65 +3,26 @@
   "title": "Sum of two numbers",
   "statement": "Given two integers, print their sum.",
   "difficulty": "easy",
-  "tags": [
-    "math",
-    "io"
-  ],
-  "timeLimitMs": 1000,
-  "memoryLimitMb": 256,
+  "topic": ["math", "io"],
+
+  "problemType": "io",
+
+  "timeLimit": 1000,
+  "memoryLimit": 256,
+
   "starterCode": {
+    "javascript": "const fs = require('fs');\nconst input = fs.readFileSync(0,'utf8').trim().split(' ');\nconst a = Number(input[0]);\nconst b = Number(input[1]);\nconsole.log(a + b);",
     "cpp": "#include <bits/stdc++.h>\nusing namespace std;\nint main(){int a,b;cin>>a>>b;cout<<a+b;return 0;}",
     "python": "a,b=map(int,input().split())\nprint(a+b)",
     "java": "import java.util.*;\npublic class Main{\n  public static void main(String[] args){\n    Scanner sc=new Scanner(System.in);\n    int a=sc.nextInt();\n    int b=sc.nextInt();\n    System.out.print(a+b);\n  }\n}"
   },
+
   "testcases": [
     {
       "id": "t1",
-      "stdin": "1 2\n",
-      "expected": "3",
+      "input": "1 2\n",
+      "expectedOutput": "3",
       "visibility": "sample",
-      "weight": 1
-    },
-    {
-      "id": "t2",
-      "stdin": "5 7\n",
-      "expected": "12",
-      "visibility": "sample",
-      "weight": 1
-    },
-    {
-      "id": "h1",
-      "stdin": "10 20\n",
-      "expected": "30",
-      "visibility": "hidden",
-      "weight": 1
-    },
-    {
-      "id": "h2",
-      "stdin": "0 0\n",
-      "expected": "0",
-      "visibility": "hidden",
-      "weight": 1
-    },
-    {
-      "id": "h3",
-      "stdin": "-1 1\n",
-      "expected": "0",
-      "visibility": "hidden",
-      "weight": 1
-    },
-    {
-      "id": "h4",
-      "stdin": "100 200\n",
-      "expected": "300",
-      "visibility": "hidden",
-      "weight": 1
-    },
-    {
-      "id": "h5",
-      "stdin": "999 1\n",
-      "expected": "1000",
-      "visibility": "hidden",
       "weight": 1
     }
   ]
