@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 export default function AuthorPage() {
+  const [idea, setIdea] = useState("");
   const [title, setTitle] = useState("");
   const [statement, setStatement] = useState("");
   const [difficulty, setDifficulty] = useState("medium");
@@ -16,6 +17,11 @@ export default function AuthorPage() {
 
   // 🔥 AI GENERATION
   async function handleAIGenerate() {
+    if (!idea.trim()) {
+      alert("Enter an idea first.");
+      return;
+    }
+
     try {
       setIsGenerating(true);
 
@@ -23,8 +29,9 @@ export default function AuthorPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          text: idea,
           difficulty,
-          topic: "general"
+          language: "javascript"
         })
       });
 
@@ -40,6 +47,7 @@ export default function AuthorPage() {
       setStatement(data.statement || "");
       setDifficulty(data.difficulty || "medium");
       setCompareMode(data.compareMode || "trimmed");
+
       setTestcases(
         Array.isArray(data.testcases) && data.testcases.length > 0
           ? data.testcases
@@ -96,6 +104,7 @@ export default function AuthorPage() {
       alert("Saved: " + data._id);
 
       // Reset
+      setIdea("");
       setTitle("");
       setStatement("");
       setDifficulty("medium");
@@ -123,7 +132,18 @@ export default function AuthorPage() {
     <div style={{ padding: 40 }}>
       <h1>Create Problem</h1>
 
-      {/* 🔥 AI BUTTON */}
+      {/* IDEA INPUT */}
+      <textarea
+        placeholder="Enter problem idea (e.g., longest subarray with sum K)"
+        value={idea}
+        onChange={(e) => setIdea(e.target.value)}
+        rows={3}
+        cols={60}
+      />
+
+      <br /><br />
+
+      {/* AI BUTTON */}
       <button
         onClick={handleAIGenerate}
         disabled={isGenerating}

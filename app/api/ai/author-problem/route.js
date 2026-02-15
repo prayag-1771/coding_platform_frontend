@@ -20,7 +20,6 @@ You are a coding problem author.
 Convert the given idea into a VALID JSON object with this exact structure:
 
 {
-  "id": string,
   "title": string,
   "statement": string,
   "difficulty": "easy" | "medium" | "hard",
@@ -30,12 +29,10 @@ Convert the given idea into a VALID JSON object with this exact structure:
   "starterCode": {
     "javascript": string,
     "cpp": string,
-    "python": string,
-    "java": string
+    "python": string
   },
   "testcases": [
     {
-      "id": string,
       "stdin": string,
       "expected": string,
       "visibility": "sample" | "hidden",
@@ -47,16 +44,16 @@ Convert the given idea into a VALID JSON object with this exact structure:
 Rules:
 - Return ONLY JSON
 - No markdown
+- No explanations
 - At least 2 sample testcases
 - At least 5 hidden testcases
-- The problem must be original
-- Testcases must match the statement exactly
-- starterCode.javascript must be a valid JavaScript function template
+- Testcases must strictly match the statement
+- starterCode.javascript must be a valid JS function template
 - The response must start with { and end with }
 `;
 
     const userPrompt = `
-Problem idea / text:
+Problem idea:
 ${text}
 
 Difficulty: ${difficulty || "medium"}
@@ -66,6 +63,7 @@ Preferred language: ${language || "javascript"}
     const aiResponse = await callYourLLM(systemPrompt, userPrompt);
 
     let problem;
+
     try {
       problem = JSON.parse(aiResponse);
     } catch (err) {
@@ -74,6 +72,39 @@ Preferred language: ${language || "javascript"}
         { error: "Model did not return valid JSON", raw: aiResponse },
         { status: 500 }
       );
+    }
+
+    // 🔥 NORMALIZATION LAYER (VERY IMPORTANT)
+
+    problem.compareMode = "trimmed";
+
+    if (!problem.tags) problem.tags = [];
+    if (!problem.timeLimitMs) problem.timeLimitMs = 1000;
+    if (!problem.memoryLimitMb) problem.memoryLimitMb = 64;
+
+    if (!problem.starterCode) {
+      problem.starterCode = {
+        javascript: "",
+        cpp: "",
+        python: ""
+      };
+    }
+
+    // Remove unsupported languages if present
+    delete problem.starterCode.java;
+
+    // Normalize testcases
+    if (Array.isArray(problem.testcases)) {
+      problem.testcases = problem.testcases.map((tc) => ({
+        stdin: tc.stdin || "",
+        expected: tc.expected || "",
+        visibility:
+          tc.visibility === "sample" ? "sample" : "hidden",
+        weight:
+          typeof tc.weight === "number" ? tc.weight : 1
+      }));
+    } else {
+      problem.testcases = [];
     }
 
     return NextResponse.json(problem);
@@ -87,7 +118,6 @@ Preferred language: ${language || "javascript"}
   }
 }
 
-
 async function callYourLLM(systemPrompt, userPrompt) {
   const prompt = `${systemPrompt}\n\n${userPrompt}`;
 
@@ -98,7 +128,7 @@ async function callYourLLM(systemPrompt, userPrompt) {
     },
     body: JSON.stringify({
       model: "mistral",
-      prompt: prompt,
+      prompt,
       stream: false,
       options: {
         temperature: 0.2
