@@ -1,7 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/db";
+import { connectDB } from "@/lib/mongodb";
+
 import Assignment from "@/models/Assignment";
 import mongoose from "mongoose";
 
@@ -38,7 +39,6 @@ export async function POST(req) {
       );
     }
 
-    // Validate ObjectIds
     for (let id of problems) {
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return NextResponse.json(

@@ -18,6 +18,7 @@ import { runTestsJS } from "../components/runTestsJS";
 import { handleSubmit } from "../components/HandleSubmit";
 import BestScoreBadge from "../components/BestScoreBadge";
 import { runRemoteTests } from "../components/runRemoteTests";
+import { useSearchParams } from "next/navigation";
 
 
 
@@ -34,6 +35,12 @@ export default function EditorPage() {
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
   const [problems, setProblems] = useState([]);
 const [currentProblem, setCurrentProblem] = useState(null);
+const searchParams = useSearchParams();
+const problemIdFromURL = searchParams.get("problemId");
+const assignmentId = searchParams.get("assignmentId");
+const isAssignmentMode = !!assignmentId;
+
+
 
 
 
@@ -186,13 +193,16 @@ const [currentProblem, setCurrentProblem] = useState(null);
 
     setProblems(data);
 
-    if (data.length > 0) {
+    if (problemIdFromURL) {
+      setCurrentQuestionId(problemIdFromURL);
+    } else if (data.length > 0) {
       setCurrentQuestionId(data[0]._id);
     }
   }
 
   loadList();
-}, []);
+}, [problemIdFromURL]);
+
 
 useEffect(() => {
   if (!currentQuestionId) return;
@@ -653,14 +663,32 @@ if (!currentProblem) return null;
 
 
             <button
-              onClick={() => handleSubmit(
-  setIsTerminalOpen,
-  setOutput,
-  language,
-  editorRef,
-  currentProblem,
-  accessToken
-)}
+              onClick={async () => {
+  const summary = await handleSubmit(
+    setIsTerminalOpen,
+    setOutput,
+    language,
+    editorRef,
+    currentProblem,
+    accessToken
+  );
+
+  if (isAssignmentMode && summary) {
+    await fetch("/api/assignment-submissions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        assignmentId,
+        problemId: currentProblem._id,
+        score: summary.score,
+        total: summary.total
+      })
+    });
+  }
+}}
+
 
               className="px-4 py-2 rounded-lg bg-violet-400 text-black font-semibold"
             >

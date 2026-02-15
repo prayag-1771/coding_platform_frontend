@@ -1,4 +1,4 @@
-import connectDB from "@/lib/db";
+import {connectDB} from "@/lib/mongodb";
 import Problem from "@/models/Problem";
 import ProblemForm from "@/components/author/ProblemForm";
 
@@ -8,3 +8,4 @@ export default async function EditProblemPage({ params }) {
 
   return <ProblemForm initialData={problem} isEdit />;
 }
+    

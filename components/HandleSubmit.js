@@ -30,20 +30,22 @@ export async function handleSubmit(
       );
 
       saveBestScore(
-        currentProblem.id,
+        currentProblem._id,
         result.score,
         result.total
       );
+
+      return result;  
+
     } catch (e) {
       setOutput("Runtime error:\n" + e.message);
+      return null;
     }
-
-    return;
   }
 
   if (!accessToken) {
     setOutput("Not authenticated.");
-    return;
+    return null;
   }
 
   const execLanguage =
@@ -66,12 +68,16 @@ export async function handleSubmit(
     );
 
     saveBestScore(
-      currentProblem.id,
+      currentProblem._id,
       summary.score,
       summary.total
     );
+
+    return summary;  
+
   } catch (e) {
     setOutput("Execution failed:\n" + e.message);
+    return null;
   }
 }
 

@@ -1,7 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/db";
+import { connectDB } from "@/lib/mongodb";
+
 import Assignment from "@/models/Assignment";
 import mongoose from "mongoose";
 
