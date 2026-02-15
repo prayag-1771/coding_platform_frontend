@@ -15,8 +15,10 @@ import FocusActions from "../components/FocusedActions";
 import CommandPalette from "../components/CommandPalette";
 import useEditorCommands from "../components/useEditorCommands";
 import { runTestsJS } from "../components/runTestsJS";
-import { handleSubmit } from "../components/HandleSubmit"
+import { handleSubmit } from "../components/HandleSubmit";
 import BestScoreBadge from "../components/BestScoreBadge";
+import { runRemoteTests } from "../components/runRemoteTests";
+
 
 
 
@@ -30,7 +32,6 @@ export default function EditorPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
-  const [customInput, setCustomInput] = useState("");
   const [problems, setProblems] = useState([]);
 const [currentProblem, setCurrentProblem] = useState(null);
 
@@ -64,61 +65,129 @@ const [currentProblem, setCurrentProblem] = useState(null);
 
   function formatJudgeOutput(result) {
   let text = `Verdict: ${result.verdict}\n`;
-  text += `Score: ${result.score} / ${result.total}\n\n`;
+  text += `Score: ${result.score} / ${result.total}\n`;
+
+  if (result.totalTime !== undefined) {
+    text += `Total Time: ${result.totalTime} ms\n`;
+  }
+
+  if (result.maxMemory !== undefined) {
+    text += `Max Memory: ${result.maxMemory} KB\n`;
+  }
+
+  text += "\n";
 
   for (const r of result.results) {
-    text += `Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}\n`;
+    // 🔒 Hidden test behavior
+    if (r.isHidden) {
+      text += `Hidden Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}\n`;
+
+      if (r.executionTime !== undefined) {
+        text += `Time: ${r.executionTime} ms\n`;
+      }
+
+      if (r.memoryUsed !== undefined && r.memoryUsed !== null) {
+        text += `Memory: ${r.memoryUsed} KB\n`;
+      }
+
+      text += "\n";
+      continue;
+    }
+
+    // 🧪 Sample test behavior
+    text += `Sample Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}\n`;
 
     if (!r.passed) {
-      text += `Input:\n${r.input}\n`;
-      text += `Expected:\n${r.expected}\n`;
-      text += `Actual:\n${r.actual}\n\n`;
+      if (r.input !== undefined)
+        text += `Input:\n${r.input}\n`;
+
+      if (r.expected !== undefined)
+        text += `Expected:\n${r.expected}\n`;
+
+      if (r.output !== undefined)
+        text += `Actual:\n${r.output}\n`;
     }
+
+    if (r.executionTime !== undefined) {
+      text += `Time: ${r.executionTime} ms\n`;
+    }
+
+    if (r.memoryUsed !== undefined && r.memoryUsed !== null) {
+      text += `Memory: ${r.memoryUsed} KB\n`;
+    }
+
+    text += "\n";
   }
 
   return text;
 }
 
 
-  function handleRun() {
+
+  async function handleRun() {
+    console.log("RUN CLICKED");
+
   if (!editorRef.current) return;
-  if (!currentProblem) return;
+  if (!currentProblem || !currentProblem.testcases) return;
   if (isRunning) return;
 
   setIsRunning(true);
   setIsTerminalOpen(true);
-  setOutput("> Running sample tests...\n\n");
+  setOutput("> Running sample tests...\n");
 
-  setTimeout(() => {
-    if (language !== "javascript") {
-      setOutput("> Only JavaScript runner is implemented right now.\n");
-      setIsRunning(false);
-      return;
-    }
+  const code = editorRef.current.getValue();
 
-    const code = editorRef.current.getValue();
+  const sampleTests = currentProblem.testcases.filter(
+    (t) => t.visibility === "sample"
+  );
 
-    const sampleTests = currentProblem.testcases.filter(
-      (t) => t.visibility === "sample"
+  const compareMode = currentProblem.compareMode || "trimmed";
+
+  if (language === "javascript") {
+    const result = runTestsJS(
+      code,
+      sampleTests,
+      compareMode
     );
-
-    const result = runTestsJS(code, sampleTests);
 
     setOutput(formatJudgeOutput(result));
     setIsRunning(false);
-  }, 150);
+    return;
+  }
+
+  const execLanguage =
+    language === "cpp" ? "c" : language;
+
+  try {
+    const summary = await runRemoteTests({
+      language: execLanguage,
+      code,
+      tests: sampleTests,           
+      accessToken,
+      compareMode                    
+    });
+
+    setOutput(formatJudgeOutput(summary));
+  } catch (e) {
+    setOutput("Execution failed:\n" + e.message);
+  }
+
+  setIsRunning(false);
 }
+
+
+
 
 
   useEffect(() => {
   async function loadList() {
-    const res = await fetch("/api/problems/list");
+    const res = await fetch("/api/problems");
     const data = await res.json();
 
     setProblems(data);
 
     if (data.length > 0) {
-      setCurrentQuestionId(data[0].id);
+      setCurrentQuestionId(data[0]._id);
     }
   }
 
@@ -492,7 +561,7 @@ if (!currentProblem) return null;
 
           <SelectContent className="bg-[#0b0e14] border border-white/10 shadow-2xl rounded-lg p-1 animate-in fade-in zoom-in-95 text-white">
             {problems.map(q => (
-              <SelectItem key={q.id} value={q.id}>
+              <SelectItem key={q._id} value={q._id}>
                 {q.title}
               </SelectItem>
             ))}
@@ -504,7 +573,7 @@ if (!currentProblem) return null;
     {currentProblem.title}
   </h1>
 
-  <BestScoreBadge questionId={currentProblem.id} />
+  <BestScoreBadge questionId={currentProblem._id} />
 </div>
 
 

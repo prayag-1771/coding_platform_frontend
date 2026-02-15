@@ -14,22 +14,26 @@ export async function handleSubmit(
   setOutput("> Submitting...\n");
 
   const code = editorRef.current.getValue();
+  const compareMode = currentProblem.compareMode || "strict";
 
   if (language === "javascript") {
     try {
       const result = runTestsJS(
         code,
-        currentProblem.testcases
+        currentProblem.testcases,
+        compareMode
       );
 
-      setOutput(formatJudgeOutput(result) + "\n\nSubmission finished.");
+      setOutput(
+        formatJudgeOutput(result, language, currentProblem) +
+          "\n\nSubmission finished."
+      );
 
       saveBestScore(
         currentProblem.id,
         result.score,
         result.total
       );
-
     } catch (e) {
       setOutput("Runtime error:\n" + e.message);
     }
@@ -37,20 +41,10 @@ export async function handleSubmit(
     return;
   }
 
-  // TEMPORARY: force local execution for all languages
-const result = runTestsJS(
-  code,
-  currentProblem.testcases
-);
-
-setOutput(formatJudgeOutput(result));
-saveBestScore(
-  currentProblem.id,
-  result.score,
-  result.total
-);
-return;
-
+  if (!accessToken) {
+    setOutput("Not authenticated.");
+    return;
+  }
 
   const execLanguage =
     language === "cpp" ? "c" : language;
@@ -63,36 +57,68 @@ return;
       code,
       tests: currentProblem.testcases,
       accessToken,
-      onProgress: (msg) => {
-        setOutput(prev => prev + msg);
-      }
+      compareMode
     });
+
+    setOutput(
+      formatJudgeOutput(summary, language, currentProblem) +
+        "\n\nSubmission finished."
+    );
 
     saveBestScore(
       currentProblem.id,
-      summary.score ?? summary.passed,
+      summary.score,
       summary.total
     );
-
-    setOutput(prev => prev + "\nSubmission finished.");
-
   } catch (e) {
     setOutput("Execution failed:\n" + e.message);
   }
 }
 
-function formatJudgeOutput(result) {
+function formatJudgeOutput(result, language, problem) {
   let text = `Verdict: ${result.verdict}\n`;
   text += `Score: ${result.score} / ${result.total}\n\n`;
 
+  text += `Language: ${language}\n`;
+  text += `Time Limit: ${problem.timeLimitMs} ms\n`;
+  text += `Memory Limit: ${problem.memoryLimitMb} MB\n\n`;
+
+  if (result.totalTime !== undefined) {
+    text += `Total Time: ${result.totalTime} ms\n`;
+  }
+
+  if (result.maxMemory !== undefined) {
+    text += `Max Memory: ${result.maxMemory} KB\n`;
+  }
+
+  text += "\n";
+
   for (const r of result.results) {
-    text += `Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}\n`;
+    if (r.isHidden) {
+      text += `Hidden Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}`;
+      if (r.executionTime != null)
+        text += ` (${r.executionTime} ms)`;
+      text += "\n\n";
+      continue;
+    }
+
+    text += `Sample Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}`;
+    if (r.executionTime != null)
+      text += ` (${r.executionTime} ms)`;
+    text += "\n";
 
     if (!r.passed) {
-      text += `Input:\n${r.input}\n`;
-      text += `Expected:\n${r.expected}\n`;
-      text += `Actual:\n${r.actual}\n\n`;
+      if (r.input !== undefined)
+        text += `Input:\n${r.input}\n`;
+
+      if (r.expected !== undefined)
+        text += `Expected:\n${r.expected}\n`;
+
+      if (r.output !== undefined)
+        text += `Actual:\n${r.output}\n`;
     }
+
+    text += "\n";
   }
 
   return text;

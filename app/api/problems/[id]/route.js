@@ -1,61 +1,38 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
+import { connectDB } from "@/lib/mongodb";
+import Problem from "@/models/Problem";
+import mongoose from "mongoose";
 
-export async function GET(request) {
+export async function GET(request, context) {
   try {
-    const url = new URL(request.url);
-    const parts = url.pathname.split("/");
+    await connectDB();
 
-    const id = parts[parts.length - 1];
+    const { id } = await context.params;   // ✅ FIXED
 
-    if (!id) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
-        { error: "id is required" },
+        { error: "Invalid ID" },
         { status: 400 }
       );
     }
 
-    const filePath = path.join(
-      process.cwd(),
-      "problems",
-      `${id}.json`
-    );
+    const problem = await Problem.findById(id);
 
-    let raw;
-    try {
-      raw = await fs.readFile(filePath, "utf-8");
-    } catch {
+    if (!problem) {
       return NextResponse.json(
         { error: "Problem not found" },
         { status: 404 }
       );
     }
 
-    let obj;
-    try {
-      obj = JSON.parse(raw);
-    } catch {
-      return NextResponse.json(
-        { error: "Corrupted problem file" },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json(problem);
 
-    obj.timeLimit = obj.timeLimit ?? 1000;
-obj.memoryLimit = obj.memoryLimit ?? 256;
-obj.topic = obj.topic ?? [];
-obj.difficulty = obj.difficulty ?? "easy";
-
-
-    return NextResponse.json(obj);
-
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(error);
     return NextResponse.json(
-      { error: "Failed to load problem" },
+      { error: "Server error" },
       { status: 500 }
     );
   }

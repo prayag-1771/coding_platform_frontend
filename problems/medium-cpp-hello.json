@@ -3,12 +3,10 @@
   "title": "Hello World in C++",
   "statement": "Write a program that prints 'Hello, World!' to the console.",
   "difficulty": "medium",
-  "tags": [
-    "cpp",
-    "output"
-  ],
+  "tags": ["cpp", "output"],
   "timeLimitMs": 1000,
   "memoryLimitMb": 64,
+  "compareMode": "trimmed",
   "starterCode": {
     "cpp": "// Your code here"
   },
