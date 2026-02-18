@@ -2,7 +2,6 @@
 
 export const dynamic = "force-dynamic";
 
-
 import {
   Select,
   SelectContent,
@@ -10,17 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import Editor from "@monaco-editor/react";
-import Terminal from "../components/Terminal";
+import Terminal from "@/components/Terminal";
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
-import FocusActions from "../components/FocusedActions";
-import CommandPalette from "../components/CommandPalette";
-import useEditorCommands from "../components/useEditorCommands";
-import { runTestsJS } from "../components/runTestsJS";
-import { handleSubmit } from "../components/HandleSubmit";
-import BestScoreBadge from "../components/BestScoreBadge";
-import { runRemoteTests } from "../components/runRemoteTests";
+import FocusActions from "@/components/FocusedActions";
+import CommandPalette from "@/components/CommandPalette";
+import useEditorCommands from "@/components/useEditorCommands";
+import { runTestsJS } from "@/components/runTestsJS";
+import { handleSubmit } from "@/components/HandleSubmit";
+import BestScoreBadge from "@/components/BestScoreBadge";
+import { runRemoteTests } from "@/components/runRemoteTests";
 import { useSearchParams } from "next/navigation";
 
 
