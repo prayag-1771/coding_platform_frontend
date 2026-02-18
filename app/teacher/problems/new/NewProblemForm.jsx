@@ -54,25 +54,52 @@ export default function NewProblemForm() {
   }
 
   async function handleSubmit() {
-    const payload = {
-      ...form,
-      tags: form.tags
-        ? form.tags.split(",").map((t) => t.trim())
-        : [],
-    };
-
-    const res = await fetch("/api/problems", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.ok) {
-      router.push("/teacher/problems");
-    } else {
-      alert("Failed to create problem");
-    }
+  if (!form.title.trim() || !form.statement.trim()) {
+    alert("Title and statement are required");
+    return;
   }
+
+  const payload = {
+    ...form,
+    tags: form.tags.split(",").map(t => t.trim()),
+  };
+
+  const res = await fetch("/api/problems", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (res.ok) {
+    router.push("/teacher/problems");
+  } else {
+    alert("Failed to create problem");
+  }
+}
+async function handleSubmit() {
+  if (!form.title.trim() || !form.statement.trim()) {
+    alert("Title and statement are required");
+    return;
+  }
+
+  const payload = {
+    ...form,
+    tags: form.tags.split(",").map(t => t.trim()),
+  };
+
+  const res = await fetch("/api/problems", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (res.ok) {
+    router.push("/teacher/problems");
+  } else {
+    alert("Failed to create problem");
+  }
+}
+
 
   return (
     <div className="min-h-screen p-8 space-y-6 max-w-4xl mx-auto">

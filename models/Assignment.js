@@ -18,6 +18,12 @@ const AssignmentSchema = new mongoose.Schema(
       required: true
     },
 
+    classroomId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Classroom",
+      required: true
+    },
+
     problems: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -30,11 +36,8 @@ const AssignmentSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     }
-
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
 export default mongoose.models.Assignment ||

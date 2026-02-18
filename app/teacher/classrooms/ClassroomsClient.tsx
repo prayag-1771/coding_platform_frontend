@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 export default function ClassroomsClient() {
-  const [classrooms, setClassrooms] = useState([]);
+  const [classrooms, setClassrooms] = useState<any[]>([]);
   const [name, setName] = useState("");
 
   useEffect(() => {
@@ -53,7 +53,13 @@ export default function ClassroomsClient() {
 
       <div className="space-y-3">
         {classrooms.map((c: any) => (
-          <div key={c._id} className="border p-4 rounded">
+          <div
+            key={c._id}
+            onClick={() =>
+              window.location.href = `/teacher/classrooms/${c._id}`
+            }
+            className="border p-4 rounded cursor-pointer hover:bg-gray-100 transition"
+          >
             {c.name}
           </div>
         ))}

@@ -15,7 +15,6 @@ export default function AuthorPage() {
     { stdin: "", expected: "", visibility: "sample", weight: 1 }
   ]);
 
-  // 🔥 AI GENERATION
   async function handleAIGenerate() {
     if (!idea.trim()) {
       alert("Enter an idea first.");
@@ -42,7 +41,6 @@ export default function AuthorPage() {
         return;
       }
 
-      // Autofill safely
       setTitle(data.title || "");
       setStatement(data.statement || "");
       setDifficulty(data.difficulty || "medium");
@@ -62,7 +60,6 @@ export default function AuthorPage() {
     }
   }
 
-  // 🔥 SAVE FUNCTION
   async function handleSave() {
     try {
       setSaving(true);
@@ -103,7 +100,6 @@ export default function AuthorPage() {
 
       alert("Saved: " + data._id);
 
-      // Reset
       setIdea("");
       setTitle("");
       setStatement("");
@@ -132,7 +128,6 @@ export default function AuthorPage() {
     <div style={{ padding: 40 }}>
       <h1>Create Problem</h1>
 
-      {/* IDEA INPUT */}
       <textarea
         placeholder="Enter problem idea (e.g., longest subarray with sum K)"
         value={idea}
@@ -143,7 +138,6 @@ export default function AuthorPage() {
 
       <br /><br />
 
-      {/* AI BUTTON */}
       <button
         onClick={handleAIGenerate}
         disabled={isGenerating}

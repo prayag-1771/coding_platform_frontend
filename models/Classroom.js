@@ -4,29 +4,22 @@ const ClassroomSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: true
     },
-
-    teachers: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
 
     students: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
+        ref: "User"
+      }
     ],
 
     assignments: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Assignment",
-      },
-    ],
+        ref: "Assignment"
+      }
+    ]
   },
   { timestamps: true }
 );
