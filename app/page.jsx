@@ -542,8 +542,13 @@ const key = language;
     return () => window.removeEventListener("keydown", handleKey);
   }, [editorFocus, questionFocus]);
 
-if (!currentProblem) return null;
-
+if (!currentProblem) {
+  return (
+    <div className="h-screen flex items-center justify-center text-white">
+      Loading problem...
+    </div>
+  );
+}
 
 
   return (
