@@ -29,9 +29,14 @@ export default function EditorPage() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
   const [problems, setProblems] = useState([]);
-const [currentProblem, setCurrentProblem] = useState(null);
-const [problemIdFromURL, setProblemIdFromURL] = useState(null);
-const [assignmentId, setAssignmentId] = useState(null);
+  const [currentProblem, setCurrentProblem] = useState(null);
+  const [problemIdFromURL, setProblemIdFromURL] = useState(null);
+  const [assignmentId, setAssignmentId] = useState(null);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [assignment, setAssignment] = useState(null);
+
+
 
 
 
@@ -64,22 +69,47 @@ const [assignmentId, setAssignmentId] = useState(null);
 
 
   function formatJudgeOutput(result) {
-  let text = `Verdict: ${result.verdict}\n`;
-  text += `Score: ${result.score} / ${result.total}\n`;
+    let text = `Verdict: ${result.verdict}\n`;
+    text += `Score: ${result.score} / ${result.total}\n`;
 
-  if (result.totalTime !== undefined) {
-    text += `Total Time: ${result.totalTime} ms\n`;
-  }
+    if (result.totalTime !== undefined) {
+      text += `Total Time: ${result.totalTime} ms\n`;
+    }
 
-  if (result.maxMemory !== undefined) {
-    text += `Max Memory: ${result.maxMemory} KB\n`;
-  }
+    if (result.maxMemory !== undefined) {
+      text += `Max Memory: ${result.maxMemory} KB\n`;
+    }
 
-  text += "\n";
+    text += "\n";
 
-  for (const r of result.results) {
-    if (r.isHidden) {
-      text += `Hidden Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}\n`;
+    for (const r of result.results) {
+      if (r.isHidden) {
+        text += `Hidden Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}\n`;
+
+        if (r.executionTime !== undefined) {
+          text += `Time: ${r.executionTime} ms\n`;
+        }
+
+        if (r.memoryUsed !== undefined && r.memoryUsed !== null) {
+          text += `Memory: ${r.memoryUsed} KB\n`;
+        }
+
+        text += "\n";
+        continue;
+      }
+
+      text += `Sample Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}\n`;
+
+      if (!r.passed) {
+        if (r.input !== undefined)
+          text += `Input:\n${r.input}\n`;
+
+        if (r.expected !== undefined)
+          text += `Expected:\n${r.expected}\n`;
+
+        if (r.output !== undefined)
+          text += `Actual:\n${r.output}\n`;
+      }
 
       if (r.executionTime !== undefined) {
         text += `Time: ${r.executionTime} ms\n`;
@@ -90,127 +120,143 @@ const [assignmentId, setAssignmentId] = useState(null);
       }
 
       text += "\n";
-      continue;
     }
 
-    text += `Sample Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}\n`;
-
-    if (!r.passed) {
-      if (r.input !== undefined)
-        text += `Input:\n${r.input}\n`;
-
-      if (r.expected !== undefined)
-        text += `Expected:\n${r.expected}\n`;
-
-      if (r.output !== undefined)
-        text += `Actual:\n${r.output}\n`;
-    }
-
-    if (r.executionTime !== undefined) {
-      text += `Time: ${r.executionTime} ms\n`;
-    }
-
-    if (r.memoryUsed !== undefined && r.memoryUsed !== null) {
-      text += `Memory: ${r.memoryUsed} KB\n`;
-    }
-
-    text += "\n";
+    return text;
   }
-
-  return text;
-}
 
 
 
   async function handleRun() {
     console.log("RUN CLICKED");
 
-  if (!editorRef.current) return;
-  if (!currentProblem || !currentProblem.testcases) return;
-  if (isRunning) return;
+    if (!editorRef.current) return;
+    if (!currentProblem || !currentProblem.testcases) return;
+    if (isRunning) return;
 
-  setIsRunning(true);
-  setIsTerminalOpen(true);
-  setOutput("> Running sample tests...\n");
+    setIsRunning(true);
+    setIsTerminalOpen(true);
+    setOutput("> Running sample tests...\n");
 
-  const code = editorRef.current.getValue();
+    const code = editorRef.current.getValue();
 
-  const sampleTests = currentProblem.testcases.filter(
-    (t) => t.visibility === "sample"
-  );
-
-  const compareMode = currentProblem.compareMode || "trimmed";
-
-  if (language === "javascript") {
-    const result = runTestsJS(
-      code,
-      sampleTests,
-      compareMode
+    const sampleTests = currentProblem.testcases.filter(
+      (t) => t.visibility === "sample"
     );
 
-    setOutput(formatJudgeOutput(result));
+    const compareMode = currentProblem.compareMode || "trimmed";
+
+    if (language === "javascript") {
+      const result = runTestsJS(
+        code,
+        sampleTests,
+        compareMode
+      );
+
+      setOutput(formatJudgeOutput(result));
+      setIsRunning(false);
+      return;
+    }
+
+    const execLanguage =
+      language === "cpp" ? "c" : language;
+
+    try {
+      const summary = await runRemoteTests({
+        language: execLanguage,
+        code,
+        tests: sampleTests,
+        accessToken,
+        compareMode
+      });
+
+      setOutput(formatJudgeOutput(summary));
+    } catch (e) {
+      setOutput("Execution failed:\n" + e.message);
+    }
+
     setIsRunning(false);
-    return;
+
   }
 
-  const execLanguage =
-    language === "cpp" ? "c" : language;
+  const isExpired =
+    assignment &&
+    new Date(assignment.deadline) < new Date();
 
-  try {
-    const summary = await runRemoteTests({
-      language: execLanguage,
-      code,
-      tests: sampleTests,           
-      accessToken,
-      compareMode                    
-    });
-
-    setOutput(formatJudgeOutput(summary));
-  } catch (e) {
-    setOutput("Execution failed:\n" + e.message);
-  }
-
-  setIsRunning(false);
-}
-
-useEffect(() => {
-  if (typeof window === "undefined") return;
-
-  const params = new URLSearchParams(window.location.search);
-  setProblemIdFromURL(params.get("problemId"));
-  setAssignmentId(params.get("assignmentId"));
-}, []);
-const isAssignmentMode = !!assignmentId;
 
   useEffect(() => {
-  async function loadList() {
-    const res = await fetch("/api/problems");
-    const data = await res.json();
-
-    setProblems(data);
-
-    if (problemIdFromURL) {
-      setCurrentQuestionId(problemIdFromURL);
-    } else if (data.length > 0) {
-      setCurrentQuestionId(data[0]._id);
+    async function fetchUser() {
+      try {
+        const res = await fetch("/api/me");
+        if (!res.ok) {
+          setUser(null);
+        } else {
+          const data = await res.json();
+          setUser(data.user || null);
+        }
+      } catch {
+        setUser(null);
+      } finally {
+        setAuthLoading(false);
+      }
     }
-  }
 
-  loadList();
-}, [problemIdFromURL]);
+    fetchUser();
+  }, []);
 
 
-useEffect(() => {
-  if (!currentQuestionId) return;
+  useEffect(() => {
+    if (!assignmentId) return;
 
-  async function loadProblem() {
-    const res = await fetch(`/api/problems/${currentQuestionId}`);
-    const data = await res.json();
-    setCurrentProblem(data);
-  }
+    async function loadAssignment() {
+      const res = await fetch(`/api/assignments/${assignmentId}`);
+      const data = await res.json();
+      setAssignment(data);
+    }
 
-  loadProblem();
-}, [currentQuestionId]);
+    loadAssignment();
+  }, [assignmentId]);
+
+
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    setProblemIdFromURL(params.get("problemId"));
+    setAssignmentId(params.get("assignmentId"));
+  }, []);
+  const isAssignmentMode = !!assignmentId;
+
+  useEffect(() => {
+    async function loadList() {
+      const res = await fetch("/api/problems");
+      const data = await res.json();
+
+      setProblems(data);
+
+      if (problemIdFromURL) {
+        setCurrentQuestionId(problemIdFromURL);
+      } else if (data.length > 0) {
+        setCurrentQuestionId(data[0]._id);
+      }
+    }
+
+    loadList();
+  }, [problemIdFromURL]);
+
+
+  useEffect(() => {
+    if (!currentQuestionId) return;
+
+    async function loadProblem() {
+      const res = await fetch(`/api/problems/${currentQuestionId}`);
+      const data = await res.json();
+      setCurrentProblem(data);
+    }
+
+    loadProblem();
+  }, [currentQuestionId]);
 
 
   useEffect(() => {
@@ -252,14 +298,14 @@ useEffect(() => {
   }, []);
 
   useEffect(() => {
-  if (!currentProblem || !editorRef.current) return;
+    if (!currentProblem || !editorRef.current) return;
 
-const key = language;
+    const key = language;
 
 
-  const code = currentProblem.starterCode?.[key] || "";
-  editorRef.current.setValue(code);
-}, [currentProblem, language]);
+    const code = currentProblem.starterCode?.[key] || "";
+    editorRef.current.setValue(code);
+  }, [currentProblem, language]);
 
   useEffect(() => {
     const focus =
@@ -542,13 +588,13 @@ const key = language;
     return () => window.removeEventListener("keydown", handleKey);
   }, [editorFocus, questionFocus]);
 
-if (!currentProblem) {
-  return (
-    <div className="h-screen flex items-center justify-center text-white">
-      Loading problem...
-    </div>
-  );
-}
+  if (!currentProblem) {
+    return (
+      <div className="h-screen flex items-center justify-center text-white">
+        Loading problem...
+      </div>
+    );
+  }
 
 
   return (
@@ -580,18 +626,18 @@ if (!currentProblem) {
         </Select><br></br>
 
         <div className="flex items-center justify-between pb-4">
-  <h1 className="text-2xl font-bold">
-    {currentProblem.title}
-  </h1>
+          <h1 className="text-2xl font-bold">
+            {currentProblem.title}
+          </h1>
 
-  <BestScoreBadge questionId={currentProblem._id} />
-</div>
+          <BestScoreBadge questionId={currentProblem._id} />
+        </div>
 
 
 
         <p className="text-gray-300 mb-4">
           {currentProblem.statement
-}
+          }
         </p>
 
 
@@ -649,54 +695,110 @@ if (!currentProblem) {
             </button>
           </div>
 
-          <div className="space-x-3">
-            <button
-  onClick={handleRun}
-  disabled={isRunning}
-  className={`px-4 py-2 rounded-lg font-medium ${
-    isRunning
-      ? "bg-white/10 text-gray-400 cursor-not-allowed"
-      : "bg-white/10 hover:bg-white/20"
-  }`}
->
-  {isRunning ? "Running..." : "Run"}
-</button>
-
+          <div className="space-x-3 flex items-center">
 
             <button
-              onClick={async () => {
-  const summary = await handleSubmit(
-    setIsTerminalOpen,
-    setOutput,
-    language,
-    editorRef,
-    currentProblem,
-    accessToken
-  );
-
-  if (isAssignmentMode && summary) {
-    await fetch("/api/assignment-submissions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        assignmentId,
-        problemId: currentProblem._id,
-        score: summary.score,
-        total: summary.total
-      })
-    });
-  }
-}}
-
-
-              className="px-4 py-2 rounded-lg bg-violet-400 text-black font-semibold"
+              onClick={handleRun}
+              disabled={isRunning}
+              className={`px-4 py-2 rounded-lg font-medium ${isRunning
+                ? "bg-white/10 text-gray-400 cursor-not-allowed"
+                : "bg-white/10 hover:bg-white/20"
+                }`}
             >
-              Submit
+              {isRunning ? "Running..." : "Run"}
             </button>
 
+            {!authLoading && !user && (
+              <>
+                <button
+                  onClick={() => window.location.href = "/login"}
+                  className="px-4 py-2 rounded-lg bg-white text-black font-semibold"
+                >
+                  Login
+                </button>
+
+                <button
+                  onClick={() => window.location.href = "/dashboard"}
+                  className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20"
+                >
+                  Dashboard
+                </button>
+              </>
+            )}
+
+            {!authLoading && user && (
+              <>
+                <button
+                  disabled={isExpired}
+                  onClick={async () => {
+                    if (isExpired) return;
+
+                    const summary = await handleSubmit(
+                      setIsTerminalOpen,
+                      setOutput,
+                      language,
+                      editorRef,
+                      currentProblem,
+                      accessToken
+                    );
+
+                    if (isAssignmentMode && summary) {
+                      await fetch("/api/assignment-submissions", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          assignmentId,
+                          problemId: currentProblem._id,
+                          score: summary.score,
+                          total: summary.total
+                        })
+                      });
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-lg font-semibold ${isExpired
+                      ? "bg-gray-500 text-gray-200 cursor-not-allowed"
+                      : "bg-violet-400 text-black"
+                    }`}
+                >
+                  {isExpired ? "Expired" : "Submit"}
+                </button>
+
+
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      window.location.href = "/login";
+                      return;
+                    }
+
+                    if (user.role === "student") {
+                      window.location.href = "/student";
+                    } else if (user.role === "teacher") {
+                      window.location.href = "/teacher";
+                    } else if (user.role === "author") {
+                      window.location.href = "/author";
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20"
+                >
+                  Dashboard
+                </button>
+
+
+                <button
+                  onClick={async () => {
+                    await fetch("/api/logout", { method: "POST" });
+                    window.location.reload();
+                  }}
+                  className="px-4 py-2 rounded-lg bg-red-500 text-white"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+
           </div>
+
         </div>
 
         <div
@@ -732,13 +834,13 @@ if (!currentProblem) {
             onRun={handleRun}
             onSubmit={() => {
               handleSubmit(
-  setIsTerminalOpen,
-  setOutput,
-  language,
-  editorRef,
-  currentProblem,
-  accessToken
-)
+                setIsTerminalOpen,
+                setOutput,
+                language,
+                editorRef,
+                currentProblem,
+                accessToken
+              )
 
             }}
             disabled={isRunning}

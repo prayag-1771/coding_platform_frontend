@@ -19,20 +19,44 @@ export default function StudentClassroomClient({ classroomId }: any) {
 
       <h2 className="text-xl font-semibold">Assignments</h2>
 
-      {classroom.assignments?.map((a: any) => (
-        <div
-          key={a._id}
-          onClick={() =>
-            window.location.href = `/assignments/${a._id}`
-          }
-          className="border p-4 rounded cursor-pointer hover:bg-gray-100"
+      {classroom.assignments?.map((a: any) => {
+  const isExpired = new Date(a.deadline) < new Date();
+
+  return (
+    <div
+      key={a._id}
+      onClick={() =>
+        window.location.href = `/assignments/${a._id}`
+      }
+      className="border p-5 rounded-lg cursor-pointer hover:bg-gray-100 transition"
+    >
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">
+          {a.title}
+        </h3>
+
+        <span
+          className={`text-xs px-3 py-1 rounded-full ${
+            isExpired
+              ? "bg-red-100 text-red-600"
+              : "bg-green-100 text-green-600"
+          }`}
         >
-          <div className="font-semibold">{a.title}</div>
-          <div className="text-sm text-gray-500">
-            Deadline: {new Date(a.deadline).toLocaleString()}
-          </div>
-        </div>
-      ))}
+          {isExpired ? "Expired" : "Active"}
+        </span>
+      </div>
+
+      <p className="text-sm text-gray-500 mt-2">
+        Deadline: {new Date(a.deadline).toLocaleString()}
+      </p>
+
+      <p className="text-sm text-gray-500">
+        Problems: {a.problems?.length || 0}
+      </p>
+    </div>
+  );
+})}
+
     </div>
   );
 }
