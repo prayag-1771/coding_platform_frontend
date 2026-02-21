@@ -59,15 +59,22 @@ export async function POST(req, context) {
       );
     }
 
-    if (classroom.students.includes(student._id)) {
-      return NextResponse.json(
-        { error: "Student already enrolled" },
-        { status: 400 }
-      );
-    }
+    const alreadyEnrolled = classroom.students.some(
+  (id) => id.toString() === student._id.toString()
+);
 
-    classroom.students.push(student._id);
-    await classroom.save();
+if (alreadyEnrolled) {
+  return NextResponse.json(
+    { error: "Student already enrolled" },
+    { status: 400 }
+  );
+}
+
+classroom.students.push(
+  new mongoose.Types.ObjectId(student._id)
+);
+
+await classroom.save();
 
     return NextResponse.json({ success: true });
 

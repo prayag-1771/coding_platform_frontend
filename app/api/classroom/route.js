@@ -5,8 +5,14 @@ import { connectDB } from "@/lib/mongodb";
 import Classroom from "@/models/Classroom";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
+import mongoose from "mongoose";
 
-export async function POST(req) {
+type TokenPayload = {
+  userId: string;
+  role: "student" | "teacher" | "author";
+};
+
+export async function POST(req: Request) {
   try {
     await connectDB();
 
@@ -14,26 +20,20 @@ export async function POST(req) {
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = verifyToken(token);
+    const user = verifyToken(token) as TokenPayload;
 
     if (!user || user.role !== "teacher") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { name } = await req.json();
 
     const classroom = await Classroom.create({
       name,
-      teachers: [user.userId],
+      teachers: [new mongoose.Types.ObjectId(user.userId)],
       students: [],
       assignments: [],
     });
@@ -57,24 +57,20 @@ export async function GET() {
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = verifyToken(token);
+    const user = verifyToken(token) as TokenPayload;
 
     if (!user || user.role !== "teacher") {
-      return NextResponse.json(
-        { error: "Forbidden" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const classrooms = await Classroom.find({
-      teachers: user.userId,
-    });
+      teachers: {
+        $in: [new mongoose.Types.ObjectId(user.userId)],
+      },
+    }).sort({ createdAt: -1 });
 
     return NextResponse.json(classrooms);
 

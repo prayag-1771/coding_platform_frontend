@@ -8,7 +8,7 @@ import { verifyToken } from "@/lib/jwt";
 import mongoose from "mongoose";
 
 type TokenPayload = {
-  userId: string;
+  id: string;
   role: "student" | "teacher" | "author";
 };
 
@@ -23,23 +23,23 @@ export async function GET() {
       return NextResponse.json([], { status: 401 });
     }
 
-    let user: TokenPayload;
-
-    try {
-      user = verifyToken(token) as TokenPayload;
-    } catch {
-      return NextResponse.json([], { status: 401 });
-    }
+    const user = verifyToken(token) as TokenPayload;
 
     if (!user || user.role !== "student") {
       return NextResponse.json([], { status: 403 });
     }
 
+    console.log("JWT USER:", user.userId);
+
     const classrooms = await Classroom.find({
-      students: new mongoose.Types.ObjectId(user.userId),
+      students: {
+  $in: [new mongoose.Types.ObjectId(user.id)],
+},
     })
       .populate("assignments")
       .sort({ createdAt: -1 });
+
+    console.log("FOUND CLASSROOMS:", classrooms);
 
     return NextResponse.json(classrooms);
 
