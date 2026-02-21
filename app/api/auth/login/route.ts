@@ -6,11 +6,18 @@ import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import { signToken } from "@/lib/jwt";
 
-export async function POST(req) {
+export async function POST(req: Request) {
   try {
     await connectDB();
 
     const { email, password } = await req.json();
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email and password required" },
+        { status: 400 }
+      );
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -20,11 +27,7 @@ export async function POST(req) {
       );
     }
 
-    const match = await bcrypt.compare(
-      password,
-      user.password
-    );
-
+    const match = await bcrypt.compare(password, user.password);
     if (!match) {
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -32,21 +35,31 @@ export async function POST(req) {
       );
     }
 
+    // ✅ STANDARDIZED JWT PAYLOAD
     const token = signToken({
-      userId: user._id,
+      _id: user._id.toString(),
       role: user.role,
     });
 
     const response = NextResponse.json({
       message: "Login successful",
+      user: {
+        _id: user._id.toString(),
+        role: user.role,
+      },
     });
 
-    response.cookies.set("token", token, {
+    response.cookies.set({
+      name: "token",
+      value: token,
       httpOnly: true,
       path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
     });
 
     return response;
+
   } catch (err) {
     console.error(err);
     return NextResponse.json(

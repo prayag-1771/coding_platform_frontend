@@ -153,137 +153,166 @@ export default function StudentAIGeneratePage() {
   }
 
   return (
-    <div className="min-h-screen p-8 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold">AI Practice Generator</h1>
+  <div className="min-h-screen bg-gray-50 py-10">
+    <div className="max-w-5xl mx-auto bg-white p-8 rounded-2xl shadow space-y-8">
 
-      <textarea
-        placeholder="Enter idea (e.g., sliding window max sum)"
-        value={idea}
-        onChange={(e) => setIdea(e.target.value)}
-        className="w-full border p-2 rounded"
-      />
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">
+          AI Practice Generator
+        </h1>
 
-      <button
-        onClick={handleAIGenerate}
-        disabled={isGenerating}
-        className="px-4 py-2 bg-blue-600 text-white rounded"
-      >
-        {isGenerating ? "Generating..." : "Generate with AI"}
-      </button>
-
-      <input
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full border p-2 rounded"
-      />
-
-      <textarea
-        placeholder="Statement"
-        value={statement}
-        onChange={(e) => setStatement(e.target.value)}
-        className="w-full border p-2 rounded h-40"
-      />
-
-      <div className="flex gap-4">
-        <select
-          value={difficulty}
-          onChange={(e) =>
-            setDifficulty(e.target.value as "easy" | "medium" | "hard")
-          }
-          className="border p-2 rounded"
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
         >
-          <option value="easy">easy</option>
-          <option value="medium">medium</option>
-          <option value="hard">hard</option>
-        </select>
-
-        <select
-          value={compareMode}
-          onChange={(e) =>
-            setCompareMode(
-              e.target.value as "strict" | "trimmed" | "ignore-whitespace"
-            )
-          }
-          className="border p-2 rounded"
-        >
-          <option value="strict">strict</option>
-          <option value="trimmed">trimmed</option>
-          <option value="ignore-whitespace">ignore-whitespace</option>
-        </select>
+          {saving ? "Saving..." : "Save for Practice"}
+        </button>
       </div>
 
-      <h3 className="font-semibold">Testcases</h3>
+      {/* AI Idea Section */}
+      <div className="border rounded-xl p-6 bg-gray-50 space-y-4">
+        <h2 className="text-lg font-semibold">Generate with AI</h2>
 
-      {testcases.map((tc: Testcase, i: number) => (
-        <div key={i} className="border p-3 rounded space-y-2">
-          <textarea
-            placeholder="stdin"
-            value={tc.stdin}
+        <textarea
+          placeholder="Enter idea (e.g., sliding window max sum)"
+          value={idea}
+          onChange={(e) => setIdea(e.target.value)}
+          className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <button
+          onClick={handleAIGenerate}
+          disabled={isGenerating}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          {isGenerating ? "Generating..." : "Generate with AI"}
+        </button>
+      </div>
+
+      {/* Problem Details */}
+      <div className="border rounded-xl p-6 space-y-4">
+        <h2 className="text-lg font-semibold">Problem Details</h2>
+
+        <input
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+        />
+
+        <textarea
+          placeholder="Statement"
+          value={statement}
+          onChange={(e) => setStatement(e.target.value)}
+          className="w-full border p-3 rounded-lg h-48 focus:outline-none focus:ring-2 focus:ring-black"
+        />
+
+        <div className="flex gap-4">
+          <select
+            value={difficulty}
             onChange={(e) =>
-              updateTestcase(i, "stdin", e.target.value)
+              setDifficulty(e.target.value as "easy" | "medium" | "hard")
             }
-            className="w-full border p-2 rounded"
-          />
+            className="border p-2 rounded-lg"
+          >
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
 
-          <textarea
-            placeholder="expected"
-            value={tc.expected}
+          <select
+            value={compareMode}
             onChange={(e) =>
-              updateTestcase(i, "expected", e.target.value)
+              setCompareMode(
+                e.target.value as "strict" | "trimmed" | "ignore-whitespace"
+              )
             }
-            className="w-full border p-2 rounded"
-          />
-
-          <div className="flex gap-3">
-            <select
-              value={tc.visibility}
-              onChange={(e) =>
-                updateTestcase(
-                  i,
-                  "visibility",
-                  e.target.value as "sample" | "hidden"
-                )
-              }
-              className="border p-2 rounded"
-            >
-              <option value="sample">sample</option>
-              <option value="hidden">hidden</option>
-            </select>
-
-            <input
-              type="number"
-              value={tc.weight}
-              onChange={(e) =>
-                updateTestcase(i, "weight", Number(e.target.value))
-              }
-              className="border p-2 rounded w-24"
-            />
-
-            <button
-              onClick={() => removeTestcase(i)}
-              className="px-3 py-1 bg-red-500 text-white rounded"
-            >
-              Remove
-            </button>
-          </div>
+            className="border p-2 rounded-lg"
+          >
+            <option value="strict">Strict</option>
+            <option value="trimmed">Trimmed</option>
+            <option value="ignore-whitespace">Ignore Whitespace</option>
+          </select>
         </div>
-      ))}
+      </div>
 
-      <button
-        onClick={addTestcase}
-        className="px-4 py-2 bg-gray-600 text-white rounded"
-      >
-        Add Testcase
-      </button>
+      {/* Testcases */}
+      <div className="border rounded-xl p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Testcases</h2>
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="px-6 py-2 bg-black text-white rounded"
-      >
-        {saving ? "Saving..." : "Save for Practice"}
-      </button>
+          <button
+            onClick={addTestcase}
+            className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition"
+          >
+            Add Testcase
+          </button>
+        </div>
+
+        {testcases.map((tc: Testcase, i: number) => (
+          <div
+            key={i}
+            className="border rounded-xl p-4 bg-gray-50 space-y-4"
+          >
+            <div className="grid grid-cols-2 gap-4">
+              <textarea
+                placeholder="Input (stdin)"
+                value={tc.stdin}
+                onChange={(e) =>
+                  updateTestcase(i, "stdin", e.target.value)
+                }
+                className="border p-2 rounded-lg"
+              />
+
+              <textarea
+                placeholder="Expected Output"
+                value={tc.expected}
+                onChange={(e) =>
+                  updateTestcase(i, "expected", e.target.value)
+                }
+                className="border p-2 rounded-lg"
+              />
+            </div>
+
+            <div className="flex gap-4 items-center">
+              <select
+                value={tc.visibility}
+                onChange={(e) =>
+                  updateTestcase(
+                    i,
+                    "visibility",
+                    e.target.value as "sample" | "hidden"
+                  )
+                }
+                className="border p-2 rounded-lg"
+              >
+                <option value="sample">Sample</option>
+                <option value="hidden">Hidden</option>
+              </select>
+
+              <input
+                type="number"
+                value={tc.weight}
+                onChange={(e) =>
+                  updateTestcase(i, "weight", Number(e.target.value))
+                }
+                className="border p-2 rounded-lg w-24"
+              />
+
+              <button
+                onClick={() => removeTestcase(i)}
+                className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
     </div>
-  );
+  </div>
+);
 }

@@ -5,8 +5,12 @@ import { connectDB } from "@/lib/mongodb";
 import Classroom from "@/models/Classroom";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
-import Assignment from "@/models/Assignment";
+import mongoose from "mongoose";
 
+type TokenPayload = {
+  userId: string;
+  role: "student" | "teacher" | "author";
+};
 
 export async function GET() {
   try {
@@ -19,10 +23,11 @@ export async function GET() {
       return NextResponse.json([], { status: 401 });
     }
 
-    let user;
+    let user: TokenPayload;
+
     try {
-      user = verifyToken(token);
-    } catch (err) {
+      user = verifyToken(token) as TokenPayload;
+    } catch {
       return NextResponse.json([], { status: 401 });
     }
 
@@ -31,8 +36,10 @@ export async function GET() {
     }
 
     const classrooms = await Classroom.find({
-      students: user.userId,
-    }).populate("assignments");
+      students: new mongoose.Types.ObjectId(user.userId),
+    })
+      .populate("assignments")
+      .sort({ createdAt: -1 });
 
     return NextResponse.json(classrooms);
 

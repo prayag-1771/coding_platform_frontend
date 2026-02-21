@@ -74,8 +74,6 @@ Preferred language: ${language || "javascript"}
       );
     }
 
-    // 🔥 NORMALIZATION LAYER (VERY IMPORTANT)
-
     problem.compareMode = "trimmed";
 
     if (!problem.tags) problem.tags = [];
@@ -90,10 +88,8 @@ Preferred language: ${language || "javascript"}
       };
     }
 
-    // Remove unsupported languages if present
     delete problem.starterCode.java;
 
-    // Normalize testcases
     if (Array.isArray(problem.testcases)) {
       problem.testcases = problem.testcases.map((tc) => ({
         stdin: tc.stdin || "",

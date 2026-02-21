@@ -82,6 +82,7 @@ export default function RegisterPage() {
         >
           <option value="student">Student</option>
           <option value="teacher">Teacher</option>
+          <option value="author">Author</option>
         </select>
 
         {error && (

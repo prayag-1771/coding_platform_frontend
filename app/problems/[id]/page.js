@@ -50,7 +50,7 @@ export default function ProblemPage({ params }) {
         .filter(t => t.visibility === "sample")
         .map(tc => (
           <div
-            key={tc.id}
+          key={tc._id || index}
             style={{
               border: "1px solid #ccc",
               padding: 10,

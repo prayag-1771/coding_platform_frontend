@@ -12,30 +12,38 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Login failed");
-        setLoading(false);
-        return;
-      }
+    const data = await res.json();
 
-      router.push("/");
-    } catch (err) {
-      setError("Server error");
+    if (!res.ok) {
+      setError(data.error || "Login failed");
       setLoading(false);
+      return;
     }
+
+    if (data.user?.role === "author") {
+      router.push("/author/dashboard");
+    } else {
+      router.push("/");
+    }
+
+  } catch (err) {
+    setError("Server error");
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
