@@ -57,7 +57,7 @@ export default function StudentDashboardClient() {
         </h2>
 
         <div
-          onClick={() => window.location.href = "/ai-generate"}
+          onClick={() => window.location.href = "/student/ai-generate"}
           className="border p-6 rounded-lg hover:bg-gray-50 cursor-pointer transition"
         >
           <h3 className="font-semibold text-lg">

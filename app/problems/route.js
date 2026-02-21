@@ -1,11 +1,3 @@
-export const runtime = "nodejs";
-
-import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import Problem from "@/models/Problem";
-import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/jwt";
-
 export async function GET(req) {
   try {
     await connectDB();
@@ -20,7 +12,8 @@ export async function GET(req) {
     }
 
     if (visibility === "private") {
-      const token = cookies().get("token")?.value;
+      const cookieStore = await cookies();
+      const token = cookieStore.get("token")?.value;
 
       if (!token) {
         return NextResponse.json(
@@ -29,9 +22,10 @@ export async function GET(req) {
         );
       }
 
-      const user = verifyToken(token);
-
-      if (!user) {
+      let user;
+      try {
+        user = verifyToken(token);
+      } catch {
         return NextResponse.json(
           { error: "Invalid token" },
           { status: 401 }
@@ -40,7 +34,7 @@ export async function GET(req) {
 
       filter = {
         visibility: "private",
-        ownerId: user.userId,
+        ownerId: user._id, // 🔥 fixed
       };
     }
 
