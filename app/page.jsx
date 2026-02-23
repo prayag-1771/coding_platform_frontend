@@ -643,14 +643,13 @@ export default function EditorPage() {
 
         <h2 className="font-semibold mt-6 mb-2">Example</h2>
         <pre className="bg-black/30 p-4 rounded-xl text-sm">
-          Input: nums = [2,7,11,15], target = 9
-          Output: [0,1]
+          Input: a = 3, b = 2
+          Output: 5
         </pre>
 
         <h2 className="font-semibold mt-6 mb-2">Constraints</h2>
         <ul className="text-gray-400 list-disc ml-6 text-sm">
-          <li>2 ≤ nums.length ≤ 10⁴</li>
-          <li>-10⁹ ≤ nums[i] ≤ 10⁹</li>
+          <li>-10⁹ ≤ a, b ≤ 10⁹</li>
         </ul>
       </div>
 
