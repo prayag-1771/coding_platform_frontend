@@ -13,16 +13,16 @@ export default function ProblemsPage() {
   }, []);
 
   async function fetchProblems() {
-    try {
-      const res = await fetch("/api/problems");
-      const data = await res.json();
-      setProblems(data);
-    } catch (err) {
-      console.error("Failed to fetch problems", err);
-    } finally {
-      setLoading(false);
-    }
+  try {
+    const res = await fetch("/api/problems?scope=private");
+    const data = await res.json();
+    setProblems(data);
+  } catch (err) {
+    console.error("Failed to fetch problems", err);
+  } finally {
+    setLoading(false);
   }
+}
 
   async function handleDelete(id) {
     const confirmDelete = confirm("Are you sure?");

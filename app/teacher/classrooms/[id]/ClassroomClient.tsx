@@ -17,10 +17,10 @@ export default function ClassroomClient({ classroomId }: any) {
   }, [classroomId]);
 
   useEffect(() => {
-    fetch(`/api/problems`)
-      .then(res => res.json())
-      .then(data => setProblems(data));
-  }, []);
+  fetch(`/api/problems?scope=assignable`)
+    .then(res => res.json())
+    .then(data => setProblems(data));
+}, []);
 
   async function fetchClassroom() {
     const res = await fetch(`/api/classroom/${classroomId}`);

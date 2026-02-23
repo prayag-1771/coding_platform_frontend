@@ -11,6 +11,7 @@ export default function NewAuthorProblemPage() {
   const [statement, setStatement] = useState("");
   const [difficulty, setDifficulty] = useState("medium");
   const [compareMode, setCompareMode] = useState("trimmed");
+  const [visibility, setVisibility] = useState("public");
   const [saving, setSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -75,6 +76,7 @@ export default function NewAuthorProblemPage() {
 
       if (cleanedTestcases.length === 0) {
         alert("At least one valid testcase required.");
+        setSaving(false);
         return;
       }
 
@@ -87,6 +89,7 @@ export default function NewAuthorProblemPage() {
           statement,
           difficulty,
           compareMode,
+          visibility,
           testcases: cleanedTestcases,
           timeLimitMs: 1000,
           memoryLimitMb: 64,
@@ -176,6 +179,15 @@ export default function NewAuthorProblemPage() {
           <option value="strict">strict</option>
           <option value="trimmed">trimmed</option>
           <option value="ignore-whitespace">ignore-whitespace</option>
+        </select>
+
+        <select
+          value={visibility}
+          onChange={(e) => setVisibility(e.target.value)}
+          className="border p-2 rounded"
+        >
+          <option value="public">public</option>
+          <option value="private">private</option>
         </select>
       </div>
 

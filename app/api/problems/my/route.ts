@@ -3,9 +3,10 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
-import "@/models/register"; // STAR_PROBLEM prevention
+import "@/models/register";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
+import mongoose from "mongoose";
 
 export async function GET() {
   try {
@@ -23,30 +24,23 @@ export async function GET() {
       return NextResponse.json([], { status: 403 });
     }
 
-    let filter: any = {};
+    // 🔥 Cast string ID to ObjectId
+    const userId = new mongoose.Types.ObjectId(user._id);
 
+    let filter: any = {
+      ownerId: userId,
+    };
+
+    // Student → only private problems
     if (user.role === "student") {
-      filter = {
-        ownerId: user._id,
-        visibility: "private",
-      };
+      filter.visibility = "private";
     }
 
-    if (user.role === "teacher") {
-      filter = {
-        ownerId: user._id,
-      };
-    }
+    // Teacher & Author → all owned problems
 
-    if (user.role === "author") {
-      filter = {
-        ownerId: user._id,
-      };
-    }
-
-    const problems = await Problem.find({})
-  .sort({ createdAt: -1 })
-  .lean();
+    const problems = await Problem.find(filter)
+      .sort({ createdAt: -1 })
+      .lean();
 
     return NextResponse.json({
       role: user.role,
