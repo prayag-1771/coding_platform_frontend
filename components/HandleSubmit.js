@@ -10,17 +10,37 @@ export async function handleSubmit(
   currentProblem,
   accessToken
 ) {
+  if (!editorRef?.current) {
+    setOutput("Editor not ready.");
+    return null;
+  }
+
+  if (!currentProblem) {
+    setOutput("Problem not loaded.");
+    return null;
+  }
+
+  const allTests = currentProblem.testcases || [];
+
+  if (!Array.isArray(allTests) || allTests.length === 0) {
+    setOutput("No testcases available for submission.");
+    return null;
+  }
+
   setIsTerminalOpen(true);
   setOutput("> Submitting...\n");
 
   const code = editorRef.current.getValue();
   const compareMode = currentProblem.compareMode || "strict";
 
+  // =============================
+  // JAVASCRIPT (Local Judge)
+  // =============================
   if (language === "javascript") {
     try {
       const result = runTestsJS(
         code,
-        currentProblem.testcases,
+        allTests,
         compareMode
       );
 
@@ -35,13 +55,17 @@ export async function handleSubmit(
         result.total
       );
 
-      return result;  
+      return result;
 
     } catch (e) {
       setOutput("Runtime error:\n" + e.message);
       return null;
     }
   }
+
+  // =============================
+  // REMOTE LANGUAGES
+  // =============================
 
   if (!accessToken) {
     setOutput("Not authenticated.");
@@ -54,10 +78,23 @@ export async function handleSubmit(
   try {
     setOutput("> Running testcases on server...\n");
 
+    // Prefer hidden tests for submission
+    const hiddenTests = allTests.filter(
+      (t) => t.visibility === "hidden"
+    );
+
+    const testsToRun =
+      hiddenTests.length > 0 ? hiddenTests : allTests;
+
+    if (!testsToRun.length) {
+      setOutput("No valid testcases found.");
+      return null;
+    }
+
     const summary = await runRemoteTests({
       language: execLanguage,
       code,
-      tests: currentProblem.testcases,
+      tests: testsToRun,
       accessToken,
       compareMode
     });
@@ -73,7 +110,7 @@ export async function handleSubmit(
       summary.total
     );
 
-    return summary;  
+    return summary;
 
   } catch (e) {
     setOutput("Execution failed:\n" + e.message);
@@ -86,8 +123,8 @@ function formatJudgeOutput(result, language, problem) {
   text += `Score: ${result.score} / ${result.total}\n\n`;
 
   text += `Language: ${language}\n`;
-  text += `Time Limit: ${problem.timeLimitMs} ms\n`;
-  text += `Memory Limit: ${problem.memoryLimitMb} MB\n\n`;
+  text += `Time Limit: ${problem?.timeLimitMs ?? "-"} ms\n`;
+  text += `Memory Limit: ${problem?.memoryLimitMb ?? "-"} MB\n\n`;
 
   if (result.totalTime !== undefined) {
     text += `Total Time: ${result.totalTime} ms\n`;
@@ -99,7 +136,7 @@ function formatJudgeOutput(result, language, problem) {
 
   text += "\n";
 
-  for (const r of result.results) {
+  for (const r of result.results || []) {
     if (r.isHidden) {
       text += `Hidden Test ${r.id}: ${r.passed ? "PASS" : "FAIL"}`;
       if (r.executionTime != null)
