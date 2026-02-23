@@ -35,7 +35,7 @@ export default function AuthorDashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen bg-[#05060f] text-white p-8">
       
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">
@@ -44,14 +44,14 @@ export default function AuthorDashboard() {
 
         <button
           onClick={() => router.push("/author/problems/new")}
-          className="px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+          className="px-5 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg transition"
         >
           + Create Problem
         </button>
       </div>
 
       {loading ? (
-        <p>Loading problems...</p>
+        <p className="text-gray-400">Loading problems...</p>
       ) : problems.length === 0 ? (
         <p className="text-gray-500">
           No public problems yet.
@@ -61,21 +61,21 @@ export default function AuthorDashboard() {
           {problems.map((problem) => (
             <div
               key={problem._id}
-              className="p-4 border rounded-lg shadow-sm hover:shadow-md transition cursor-pointer"
+              className="p-4 border border-white/10 rounded-lg bg-[#0b0e14] hover:bg-[#121622] transition cursor-pointer"
               onClick={() =>
                 router.push(`/problems/${problem._id}`)
               }
             >
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">
                   {problem.title}
                 </h2>
-                <span className="text-sm px-2 py-1 bg-gray-200 rounded">
+                <span className="text-sm px-2 py-1 bg-white/10 rounded border border-white/10">
                   {problem.difficulty}
                 </span>
               </div>
 
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-400 mt-2">
                 Created on{" "}
                 {new Date(problem.createdAt).toLocaleDateString()}
               </p>

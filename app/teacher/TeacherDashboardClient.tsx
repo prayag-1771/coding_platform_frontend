@@ -20,7 +20,7 @@ export default function TeacherDashboardClient() {
   }, []);
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen w-full bg-[#05060f] text-white p-8">
       <h1 className="text-3xl font-bold mb-8">
         Teacher Dashboard
       </h1>
@@ -29,7 +29,7 @@ export default function TeacherDashboardClient() {
 
         <div
           onClick={() => router.push("/teacher/problems")}
-          className="p-6 border rounded-xl cursor-pointer hover:shadow-lg transition"
+          className="p-6 bg-[#0b0e14] border border-white/10 rounded-xl cursor-pointer hover:bg-[#121622] transition"
         >
           <h2 className="text-xl font-semibold">
             Manage Problems
@@ -38,7 +38,7 @@ export default function TeacherDashboardClient() {
 
         <div
           onClick={() => router.push("/teacher/classrooms")}
-          className="p-6 border rounded-xl cursor-pointer hover:shadow-lg transition"
+          className="p-6 bg-[#0b0e14] border border-white/10 rounded-xl cursor-pointer hover:bg-[#121622] transition"
         >
           <h2 className="text-xl font-semibold">
             Manage Classrooms
@@ -56,12 +56,12 @@ export default function TeacherDashboardClient() {
           <div
             key={p._id}
             onClick={() => router.push(`/?problemId=${p._id}`)}
-            className="p-4 border rounded-lg cursor-pointer hover:bg-gray-50 hover:shadow-md transition"
+            className="p-4 bg-[#0b0e14] border border-white/10 rounded-lg cursor-pointer hover:bg-[#121622] transition"
           >
-            <div className="font-medium text-blue-600 hover:underline">
+            <div className="font-medium text-white">
               {p.title}
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-400">
               Visibility: {p.visibility}
             </div>
           </div>

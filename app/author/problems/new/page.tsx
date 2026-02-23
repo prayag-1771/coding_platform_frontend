@@ -124,143 +124,147 @@ export default function NewAuthorProblemPage() {
   }
 
   return (
-    <div className="min-h-screen p-10 max-w-5xl mx-auto space-y-8">
-      <h1 className="text-3xl font-bold">Create Public Problem</h1>
+    <div className="min-h-screen w-full bg-[#05060f] text-white">
+      <div className="p-10 max-w-5xl mx-auto space-y-8">
 
-      <div className="space-y-3">
-        <textarea
-          placeholder="Enter problem idea..."
-          value={idea}
-          onChange={(e) => setIdea(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-          rows={3}
+        <h1 className="text-3xl font-bold">Create Public Problem</h1>
+
+        <div className="space-y-3 bg-[#0b0e14] border border-white/10 p-6 rounded-xl">
+          <textarea
+            placeholder="Enter problem idea..."
+            value={idea}
+            onChange={(e) => setIdea(e.target.value)}
+            className="w-full bg-black/40 border border-white/10 p-3 rounded-lg focus:outline-none focus:border-white/30"
+            rows={3}
+          />
+
+          <button
+            onClick={handleAIGenerate}
+            disabled={isGenerating}
+            className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg transition"
+          >
+            {isGenerating ? "Generating..." : "Generate with AI"}
+          </button>
+        </div>
+
+        <input
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 p-3 rounded-lg focus:outline-none focus:border-white/30"
         />
 
-        <button
-          onClick={handleAIGenerate}
-          disabled={isGenerating}
-          className="px-4 py-2 bg-black text-white rounded-lg"
-        >
-          {isGenerating ? "Generating..." : "Generate with AI"}
-        </button>
-      </div>
+        <textarea
+          placeholder="Problem Statement"
+          value={statement}
+          onChange={(e) => setStatement(e.target.value)}
+          className="w-full bg-black/40 border border-white/10 p-3 rounded-lg focus:outline-none focus:border-white/30"
+          rows={6}
+        />
 
-      <input
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full border p-3 rounded-lg"
-      />
+        <div className="flex gap-4">
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+            className="bg-black/40 border border-white/10 p-2 rounded focus:outline-none focus:border-white/30"
+          >
+            <option value="easy">easy</option>
+            <option value="medium">medium</option>
+            <option value="hard">hard</option>
+          </select>
 
-      <textarea
-        placeholder="Problem Statement"
-        value={statement}
-        onChange={(e) => setStatement(e.target.value)}
-        className="w-full border p-3 rounded-lg"
-        rows={6}
-      />
+          <select
+            value={compareMode}
+            onChange={(e) => setCompareMode(e.target.value)}
+            className="bg-black/40 border border-white/10 p-2 rounded focus:outline-none focus:border-white/30"
+          >
+            <option value="strict">strict</option>
+            <option value="trimmed">trimmed</option>
+            <option value="ignore-whitespace">ignore-whitespace</option>
+          </select>
 
-      <div className="flex gap-4">
-        <select
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value)}
-          className="border p-2 rounded"
-        >
-          <option value="easy">easy</option>
-          <option value="medium">medium</option>
-          <option value="hard">hard</option>
-        </select>
+          <select
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value)}
+            className="bg-black/40 border border-white/10 p-2 rounded focus:outline-none focus:border-white/30"
+          >
+            <option value="public">public</option>
+            <option value="private">private</option>
+          </select>
+        </div>
 
-        <select
-          value={compareMode}
-          onChange={(e) => setCompareMode(e.target.value)}
-          className="border p-2 rounded"
-        >
-          <option value="strict">strict</option>
-          <option value="trimmed">trimmed</option>
-          <option value="ignore-whitespace">ignore-whitespace</option>
-        </select>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Testcases</h2>
 
-        <select
-          value={visibility}
-          onChange={(e) => setVisibility(e.target.value)}
-          className="border p-2 rounded"
-        >
-          <option value="public">public</option>
-          <option value="private">private</option>
-        </select>
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Testcases</h2>
-
-        {testcases.map((tc, i) => (
-          <div key={i} className="border p-4 rounded-lg space-y-2">
-            <textarea
-              placeholder="stdin"
-              value={tc.stdin}
-              onChange={(e) => {
-                const copy = [...testcases];
-                copy[i].stdin = e.target.value;
-                setTestcases(copy);
-              }}
-              className="w-full border p-2 rounded"
-            />
-
-            <textarea
-              placeholder="expected output"
-              value={tc.expected}
-              onChange={(e) => {
-                const copy = [...testcases];
-                copy[i].expected = e.target.value;
-                setTestcases(copy);
-              }}
-              className="w-full border p-2 rounded"
-            />
-
-            <div className="flex gap-4 items-center">
-              <select
-                value={tc.visibility}
+          {testcases.map((tc, i) => (
+            <div key={i} className="bg-[#0b0e14] border border-white/10 p-4 rounded-xl space-y-3">
+              <textarea
+                placeholder="stdin"
+                value={tc.stdin}
                 onChange={(e) => {
                   const copy = [...testcases];
-                  copy[i].visibility = e.target.value;
+                  copy[i].stdin = e.target.value;
                   setTestcases(copy);
                 }}
-                className="border p-2 rounded"
-              >
-                <option value="sample">sample</option>
-                <option value="hidden">hidden</option>
-              </select>
-
-              <input
-                type="number"
-                value={tc.weight}
-                onChange={(e) => {
-                  const copy = [...testcases];
-                  copy[i].weight = Number(e.target.value);
-                  setTestcases(copy);
-                }}
-                className="border p-2 rounded w-24"
+                className="w-full bg-black/40 border border-white/10 p-2 rounded focus:outline-none focus:border-white/30"
               />
+
+              <textarea
+                placeholder="expected output"
+                value={tc.expected}
+                onChange={(e) => {
+                  const copy = [...testcases];
+                  copy[i].expected = e.target.value;
+                  setTestcases(copy);
+                }}
+                className="w-full bg-black/40 border border-white/10 p-2 rounded focus:outline-none focus:border-white/30"
+              />
+
+              <div className="flex gap-4 items-center">
+                <select
+                  value={tc.visibility}
+                  onChange={(e) => {
+                    const copy = [...testcases];
+                    copy[i].visibility = e.target.value;
+                    setTestcases(copy);
+                  }}
+                  className="bg-black/40 border border-white/10 p-2 rounded focus:outline-none focus:border-white/30"
+                >
+                  <option value="sample">sample</option>
+                  <option value="hidden">hidden</option>
+                </select>
+
+                <input
+                  type="number"
+                  value={tc.weight}
+                  onChange={(e) => {
+                    const copy = [...testcases];
+                    copy[i].weight = Number(e.target.value);
+                    setTestcases(copy);
+                  }}
+                  className="bg-black/40 border border-white/10 p-2 rounded w-24 focus:outline-none focus:border-white/30"
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+
+          <button
+            onClick={addTestcase}
+            className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg transition"
+          >
+            Add Testcase
+          </button>
+        </div>
 
         <button
-          onClick={addTestcase}
-          className="px-4 py-2 bg-gray-700 text-white rounded-lg"
+          onClick={handleSave}
+          disabled={saving}
+          className="px-6 py-3 bg-violet-400 text-black rounded-lg font-semibold"
         >
-          Add Testcase
+          {saving ? "Saving..." : "Save Problem"}
         </button>
-      </div>
 
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="px-6 py-3 bg-black text-white rounded-lg"
-      >
-        {saving ? "Saving..." : "Save Problem"}
-      </button>
+      </div>
     </div>
   );
 }

@@ -30,14 +30,14 @@ export default function ClassroomsClient() {
   }
 
   return (
-    <div className="min-h-screen p-8 space-y-6">
+    <div className="min-h-screen w-full bg-[#05060f] text-white p-8 space-y-6">
       <h1 className="text-3xl font-bold">
         Manage Classrooms
       </h1>
 
       <div className="flex gap-4">
         <input
-          className="border p-2 rounded"
+          className="bg-black/40 border border-white/10 p-2 rounded focus:outline-none focus:border-white/30"
           placeholder="Classroom name"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -45,7 +45,7 @@ export default function ClassroomsClient() {
 
         <button
           onClick={createClassroom}
-          className="bg-black text-white px-4 py-2 rounded"
+          className="bg-white/10 hover:bg-white/20 border border-white/10 px-4 py-2 rounded transition"
         >
           Create
         </button>
@@ -58,7 +58,7 @@ export default function ClassroomsClient() {
             onClick={() =>
               window.location.href = `/teacher/classrooms/${c._id}`
             }
-            className="border p-4 rounded cursor-pointer hover:bg-gray-100 transition"
+            className="bg-[#0b0e14] border border-white/10 p-4 rounded cursor-pointer hover:bg-[#121622] transition"
           >
             {c.name}
           </div>

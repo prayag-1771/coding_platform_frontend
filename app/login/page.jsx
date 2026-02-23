@@ -12,44 +12,44 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
-  e.preventDefault();
-  setError("");
-  setLoading(true);
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      setError(data.error || "Login failed");
+      if (!res.ok) {
+        setError(data.error || "Login failed");
+        setLoading(false);
+        return;
+      }
+
+      if (data.user?.role === "author") {
+        router.push("/author/dashboard");
+      } else {
+        router.push("/");
+      }
+
+    } catch (err) {
+      setError("Server error");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    if (data.user?.role === "author") {
-      router.push("/author/dashboard");
-    } else {
-      router.push("/");
-    }
-
-  } catch (err) {
-    setError("Server error");
-  } finally {
-    setLoading(false);
   }
-}
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="min-h-screen w-full bg-[#05060f] flex items-center justify-center text-white">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-md w-96 space-y-4"
+        className="bg-[#0b0e14] border border-white/10 p-8 rounded-2xl w-96 space-y-5"
       >
         <h1 className="text-2xl font-bold text-center">
           Login
@@ -58,7 +58,7 @@ export default function LoginPage() {
         <input
           type="email"
           placeholder="Email"
-          className="w-full border p-2 rounded"
+          className="w-full bg-black/40 border border-white/10 p-3 rounded-lg focus:outline-none focus:border-white/30"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -66,27 +66,27 @@ export default function LoginPage() {
         <input
           type="password"
           placeholder="Password"
-          className="w-full border p-2 rounded"
+          className="w-full bg-black/40 border border-white/10 p-3 rounded-lg focus:outline-none focus:border-white/30"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
 
         {error && (
-          <p className="text-sm text-red-500">{error}</p>
+          <p className="text-sm text-red-400">{error}</p>
         )}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-black text-white p-2 rounded"
+          className="w-full bg-violet-400 text-black p-3 rounded-lg font-semibold"
         >
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        <p className="text-sm text-center">
+        <p className="text-sm text-center text-gray-400">
           Don't have an account?{" "}
           <span
-            className="text-blue-500 cursor-pointer"
+            className="text-violet-400 cursor-pointer hover:underline"
             onClick={() => router.push("/register")}
           >
             Register

@@ -11,15 +11,20 @@ export default function AssignmentClient({ assignmentId }: any) {
       .then(data => setAssignment(data));
   }, [assignmentId]);
 
-  if (!assignment) return <div className="p-8">Loading...</div>;
+  if (!assignment)
+    return (
+      <div className="min-h-screen bg-[#05060f] text-white p-8">
+        Loading...
+      </div>
+    );
 
   return (
-    <div className="min-h-screen p-8 space-y-8">
+    <div className="min-h-screen bg-[#05060f] text-white p-8 space-y-8">
       <h1 className="text-3xl font-bold">
         {assignment.title}
       </h1>
 
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-gray-400">
         Deadline: {new Date(assignment.deadline).toLocaleString()}
       </div>
 
@@ -31,12 +36,12 @@ export default function AssignmentClient({ assignmentId }: any) {
               window.location.href =
                 `/?problemId=${p._id}&assignmentId=${assignment._id}`
             }
-            className="border p-4 rounded cursor-pointer"
+            className="border border-white/10 bg-white/5 p-4 rounded cursor-pointer hover:bg-white/10 transition"
           >
             <div className="font-semibold">
               {p.title}
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-gray-400">
               {p.difficulty}
             </div>
           </div>

@@ -30,15 +30,15 @@ export default function MyProblemsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen p-8 space-y-6">
+    <div className="min-h-screen bg-[#05060f] text-white p-8 space-y-6">
       <h1 className="text-3xl font-bold">
         My Problems
       </h1>
 
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-400">Loading...</p>
       ) : problems.length === 0 ? (
-        <p className="text-gray-500">
+        <p className="text-gray-400">
           No problems found.
         </p>
       ) : (
@@ -46,13 +46,13 @@ export default function MyProblemsPage() {
           {problems.map((p) => (
             <div
               key={p._id}
-              className="border p-4 rounded hover:bg-gray-50 transition"
+              className="border border-white/10 bg-white/5 p-4 rounded hover:bg-white/10 transition"
             >
               <h3 className="font-semibold text-lg">
                 {p.title}
               </h3>
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-400">
                 Difficulty: {p.difficulty}
               </p>
 
@@ -62,7 +62,7 @@ export default function MyProblemsPage() {
                   onClick={() =>
                     window.location.href = `/?problemId=${p._id}`
                   }
-                  className="text-blue-600"
+                  className="text-violet-400 hover:text-violet-300"
                 >
                   Open
                 </button>
@@ -72,7 +72,7 @@ export default function MyProblemsPage() {
                     onClick={() =>
                       window.location.href = `/teacher/problems/edit/${p._id}`
                     }
-                    className="text-green-600"
+                    className="text-green-400 hover:text-green-300"
                   >
                     Edit
                   </button>
