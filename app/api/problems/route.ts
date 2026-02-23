@@ -1,27 +1,25 @@
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
-import "@/models/register"; 
+import "@/models/register";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
+import mongoose from "mongoose";
 
+
+
+/* =========================
+   GET PROBLEMS
+========================= */
 export async function GET(req: Request) {
   try {
     await connectDB();
 
-    const cookieStore = await cookies();
+    const cookieStore = await cookies(); // ✅ Next.js 16 requires await
     const token = cookieStore.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = verifyToken(token);
-    if (!user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 403 });
-    }
 
     const { searchParams } = new URL(req.url);
     const visibility = searchParams.get("visibility");
@@ -29,50 +27,66 @@ export async function GET(req: Request) {
 
     let filter: any = {};
 
-    if (user.role === "teacher") {
+    // 🔓 GUEST → only public
+    if (!token) {
+      filter = { visibility: "public" };
+    } else {
+      let user: any = null;
 
-      if (scope === "all") {
-        filter = {
-          $or: [
-            { ownerId: user._id },
-            { visibility: "public" }
-          ]
-        };
+      try {
+        user = verifyToken(token);
+      } catch {
+        user = null;
       }
 
-      else if (scope === "private") {
-        filter = {
-          ownerId: user._id,
-          visibility: "private"
-        };
+      if (!user) {
+        filter = { visibility: "public" };
       }
 
-      else if (scope === "assignable") {
-        filter = {
-          $or: [
-            {
-              ownerId: user._id,
-              visibility: "private"
-            },
-            {
-              visibility: "public"
-            }
-          ]
-        };
+      else if (user.role === "teacher") {
+
+        const ownerId = new mongoose.Types.ObjectId(user._id);
+
+        if (scope === "all") {
+          filter = {
+            $or: [
+              { ownerId },
+              { visibility: "public" }
+            ]
+          };
+        }
+
+        else if (scope === "private") {
+          filter = {
+            ownerId,
+            visibility: "private"
+          };
+        }
+
+        else if (scope === "assignable") {
+          filter = {
+            $or: [
+              { ownerId, visibility: "private" },
+              { visibility: "public" }
+            ]
+          };
+        }
+
+        else {
+          filter = { ownerId };
+        }
+      }
+
+      else if (user.role === "student") {
+        filter = { visibility: "public" };
+      }
+
+      else if (user.role === "author") {
+        filter = visibility ? { visibility } : {};
       }
 
       else {
-        filter = { ownerId: user._id };
-      }
-    }
-
-    else if (user.role === "student") {
-      filter = { visibility: "public" };
-    }
-
-    else if (user.role === "author") {
-      if (visibility) {
-        filter.visibility = visibility;
+        filter = { visibility: "public" };
       }
     }
 
@@ -90,43 +104,56 @@ export async function GET(req: Request) {
     );
   }
 }
+
+
+
+/* =========================
+   CREATE PROBLEM
+========================= */
 export async function POST(req: Request) {
   try {
     await connectDB();
 
-    const cookieStore = await cookies();
+    const cookieStore = await cookies(); // ✅ Next.js 16
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = verifyToken(token);
+    let user: any = null;
+
+    try {
+      user = verifyToken(token);
+    } catch {
+      user = null;
+    }
+
     if (!user) {
       return NextResponse.json({ error: "Invalid token" }, { status: 403 });
     }
 
     const body = await req.json();
 
-    let visibility = "private"; 
+    let visibility = "private";
 
     if (user.role === "author") {
       visibility = body.visibility === "public" ? "public" : "private";
     }
 
-    if (user.role === "teacher") {
+    else if (user.role === "teacher") {
       visibility =
         body.visibility === "classroom" ? "classroom" : "private";
     }
 
-    if (user.role === "student") {
+    else if (user.role === "student") {
       visibility = "private";
     }
 
     const problem = await Problem.create({
       ...body,
       visibility,
-      ownerId: user._id,
+      ownerId: new mongoose.Types.ObjectId(user._id),
     });
 
     return NextResponse.json(problem, { status: 201 });

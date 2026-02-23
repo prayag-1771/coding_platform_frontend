@@ -9,49 +9,56 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 
 
-export async function GET(request: Request, context: any) {
+export async function GET(req: Request) {
   try {
     await connectDB();
 
-    const { id } = context.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-    }
+    const { searchParams } = new URL(req.url);
+    const visibility = searchParams.get("visibility");
 
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
+    let filter: any = {};
+
+    // 🔥 NOT LOGGED IN → only public problems
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      filter = { visibility: "public" };
+    } else {
+      const user = verifyToken(token);
+
+      if (!user) {
+        filter = { visibility: "public" };
+      } else if (user.role === "teacher") {
+        filter = {
+          $or: [
+            { ownerId: user._id },
+            { visibility: "public" }
+          ]
+        };
+      } else if (user.role === "student") {
+        filter = { visibility: "public" };
+      } else if (user.role === "author") {
+        filter = {};
+      }
     }
 
-    const user = verifyToken(token);
-    if (!user) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 403 });
+    if (visibility) {
+      filter.visibility = visibility;
     }
 
-    const problem = await Problem.findById(id);
-    if (!problem) {
-      return NextResponse.json({ error: "Problem not found" }, { status: 404 });
-    }
+    const problems = await Problem.find(filter)
+      .select("_id title difficulty visibility")
+      .lean();
 
-    if (user.role === "student" && problem.visibility !== "public") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    return NextResponse.json(problems);
 
-    if (
-      user.role === "teacher" &&
-      problem.ownerId?.toString() !== user._id
-    ) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    return NextResponse.json(problem);
-
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json(
+      { error: "Failed to fetch problems" },
+      { status: 500 }
+    );
   }
 }
 
