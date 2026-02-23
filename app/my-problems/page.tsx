@@ -56,12 +56,11 @@ export default function MyProblemsPage() {
                 Difficulty: {p.difficulty}
               </p>
 
-              {/* 🎯 Role-based actions */}
               <div className="mt-3 flex gap-3 text-sm">
 
                 <button
                   onClick={() =>
-                    window.location.href = `/problems/${p._id}`
+                    window.location.href = `/?problemId=${p._id}`
                   }
                   className="text-blue-600"
                 >
