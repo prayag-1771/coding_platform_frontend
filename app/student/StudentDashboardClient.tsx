@@ -4,11 +4,33 @@ import { useEffect, useState } from "react";
 
 export default function StudentDashboardClient() {
   const [classrooms, setClassrooms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/student/classrooms")
-      .then(res => res.json())
-      .then(data => setClassrooms(data || []));
+    const fetchClassrooms = async () => {
+      try {
+        const res = await fetch("/api/student/classrooms");
+        const data = await res.json();
+
+        // 🔐 Defensive shape handling
+        if (Array.isArray(data)) {
+          setClassrooms(data);
+        } else if (Array.isArray(data.classrooms)) {
+          setClassrooms(data.classrooms);
+        } else if (Array.isArray(data.data)) {
+          setClassrooms(data.data);
+        } else {
+          setClassrooms([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch classrooms:", err);
+        setClassrooms([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClassrooms();
   }, []);
 
   return (
@@ -17,7 +39,7 @@ export default function StudentDashboardClient() {
         Student Dashboard
       </h1>
 
-      {/* 🧪 Practice Section */}
+      {/* Practice Section */}
       <section>
         <h2 className="text-xl font-semibold mb-4">
           Practice
@@ -50,7 +72,7 @@ export default function StudentDashboardClient() {
         </div>
       </section>
 
-      {/* 🤖 AI Section */}
+      {/* AI Section */}
       <section>
         <h2 className="text-xl font-semibold mb-4">
           AI Generation
@@ -69,13 +91,15 @@ export default function StudentDashboardClient() {
         </div>
       </section>
 
-      {/* 🏫 Classrooms Section */}
+      {/* Classrooms Section */}
       <section>
         <h2 className="text-xl font-semibold mb-4">
           Classrooms
         </h2>
 
-        {classrooms.length === 0 ? (
+        {loading ? (
+          <p className="text-gray-500">Loading classrooms...</p>
+        ) : classrooms.length === 0 ? (
           <p className="text-gray-500">
             You are not enrolled in any classrooms.
           </p>

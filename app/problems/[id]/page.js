@@ -45,25 +45,28 @@ export default function ProblemPage({ params }) {
       </pre>
 
       <h4>Sample testcases</h4>
-
+        
       {problem.testcases
-        .filter(t => t.visibility === "sample")
-        .map(tc => (
-          <div
-          key={tc._id || index}
-            style={{
-              border: "1px solid #ccc",
-              padding: 10,
-              marginBottom: 10
-            }}
-          >
-            <div><b>Input</b></div>
-            <pre>{tc.stdin}</pre>
-
-            <div><b>Expected</b></div>
-            <pre>{tc.expected}</pre>
-          </div>
-        ))}
+  .filter(tc => tc.visibility === "sample")
+  .map((tc, index) => (
+    <div
+      key={tc._id || index}
+      style={{
+        border: "1px solid #ccc",
+        padding: 10,
+        marginBottom: 10,
+      }}
+    >
+      <div>
+        <strong>Input:</strong>
+        <pre>{tc.stdin}</pre>
+      </div>
+      <div>
+        <strong>Output:</strong>
+        <pre>{tc.expected}</pre>
+      </div>
+    </div>
+))}
     </div>
   );
 }

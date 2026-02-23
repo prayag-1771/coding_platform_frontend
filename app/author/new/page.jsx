@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
-export default function NewAuthorProblemPage() {
-  const router = useRouter();
-
+export default function AuthorPage() {
   const [idea, setIdea] = useState("");
   const [title, setTitle] = useState("");
   const [statement, setStatement] = useState("");
@@ -81,7 +78,6 @@ export default function NewAuthorProblemPage() {
       const res = await fetch("/api/problems", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           title,
           statement,
@@ -102,8 +98,16 @@ export default function NewAuthorProblemPage() {
         return;
       }
 
-      alert("Saved successfully!");
-      router.push("/author");
+      alert("Saved: " + data._id);
+
+      setIdea("");
+      setTitle("");
+      setStatement("");
+      setDifficulty("medium");
+      setCompareMode("trimmed");
+      setTestcases([
+        { stdin: "", expected: "", visibility: "sample", weight: 1 }
+      ]);
 
     } catch (err) {
       console.error(err);
@@ -121,132 +125,118 @@ export default function NewAuthorProblemPage() {
   }
 
   return (
-    <div className="min-h-screen p-10 max-w-5xl mx-auto space-y-8">
-      <h1 className="text-3xl font-bold">Create Public Problem</h1>
+    <div style={{ padding: 40 }}>
+      <h1>Create Problem</h1>
 
-      <div className="space-y-3">
-        <textarea
-          placeholder="Enter problem idea..."
-          value={idea}
-          onChange={(e) => setIdea(e.target.value)}
-          className="w-full border p-3 rounded-lg"
-          rows={3}
-        />
+      <textarea
+        placeholder="Enter problem idea (e.g., longest subarray with sum K)"
+        value={idea}
+        onChange={(e) => setIdea(e.target.value)}
+        rows={3}
+        cols={60}
+      />
 
-        <button
-          onClick={handleAIGenerate}
-          disabled={isGenerating}
-          className="px-4 py-2 bg-black text-white rounded-lg"
-        >
-          {isGenerating ? "Generating..." : "Generate with AI"}
-        </button>
-      </div>
+      <br /><br />
+
+      <button
+        onClick={handleAIGenerate}
+        disabled={isGenerating}
+        style={{ marginBottom: 15, marginRight: 10 }}
+      >
+        {isGenerating ? "Generating..." : "Generate with AI"}
+      </button>
+
+      <br />
 
       <input
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full border p-3 rounded-lg"
       />
+
+      <br /><br />
 
       <textarea
-        placeholder="Problem Statement"
+        placeholder="Statement"
         value={statement}
         onChange={(e) => setStatement(e.target.value)}
-        className="w-full border p-3 rounded-lg"
         rows={6}
+        cols={60}
       />
 
-      <div className="flex gap-4">
-        <select
-          value={difficulty}
-          onChange={(e) => setDifficulty(e.target.value)}
-          className="border p-2 rounded"
-        >
-          <option value="easy">easy</option>
-          <option value="medium">medium</option>
-          <option value="hard">hard</option>
-        </select>
+      <br /><br />
 
-        <select
-          value={compareMode}
-          onChange={(e) => setCompareMode(e.target.value)}
-          className="border p-2 rounded"
-        >
-          <option value="strict">strict</option>
-          <option value="trimmed">trimmed</option>
-          <option value="ignore-whitespace">ignore-whitespace</option>
-        </select>
-      </div>
-
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Testcases</h2>
-
-        {testcases.map((tc, i) => (
-          <div key={i} className="border p-4 rounded-lg space-y-2">
-            <textarea
-              placeholder="stdin"
-              value={tc.stdin}
-              onChange={(e) => {
-                const copy = [...testcases];
-                copy[i].stdin = e.target.value;
-                setTestcases(copy);
-              }}
-              className="w-full border p-2 rounded"
-            />
-
-            <textarea
-              placeholder="expected output"
-              value={tc.expected}
-              onChange={(e) => {
-                const copy = [...testcases];
-                copy[i].expected = e.target.value;
-                setTestcases(copy);
-              }}
-              className="w-full border p-2 rounded"
-            />
-
-            <div className="flex gap-4 items-center">
-              <select
-                value={tc.visibility}
-                onChange={(e) => {
-                  const copy = [...testcases];
-                  copy[i].visibility = e.target.value;
-                  setTestcases(copy);
-                }}
-                className="border p-2 rounded"
-              >
-                <option value="sample">sample</option>
-                <option value="hidden">hidden</option>
-              </select>
-
-              <input
-                type="number"
-                value={tc.weight}
-                onChange={(e) => {
-                  const copy = [...testcases];
-                  copy[i].weight = Number(e.target.value);
-                  setTestcases(copy);
-                }}
-                className="border p-2 rounded w-24"
-              />
-            </div>
-          </div>
-        ))}
-
-        <button
-          onClick={addTestcase}
-          className="px-4 py-2 bg-gray-700 text-white rounded-lg"
-        >
-          Add Testcase
-        </button>
-      </div>
-
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="px-6 py-3 bg-black text-white rounded-lg"
+      <select
+        value={difficulty}
+        onChange={(e) => setDifficulty(e.target.value)}
       >
+        <option value="easy">easy</option>
+        <option value="medium">medium</option>
+        <option value="hard">hard</option>
+      </select>
+
+      <select
+        value={compareMode}
+        onChange={(e) => setCompareMode(e.target.value)}
+      >
+        <option value="strict">strict</option>
+        <option value="trimmed">trimmed</option>
+        <option value="ignore-whitespace">ignore-whitespace</option>
+      </select>
+
+      <h3>Testcases</h3>
+
+      {testcases.map((tc, i) => (
+        <div key={i} style={{ marginBottom: 20 }}>
+          <textarea
+            placeholder="stdin"
+            value={tc.stdin}
+            onChange={(e) => {
+              const copy = [...testcases];
+              copy[i].stdin = e.target.value;
+              setTestcases(copy);
+            }}
+          />
+
+          <textarea
+            placeholder="expected"
+            value={tc.expected}
+            onChange={(e) => {
+              const copy = [...testcases];
+              copy[i].expected = e.target.value;
+              setTestcases(copy);
+            }}
+          />
+
+          <select
+            value={tc.visibility}
+            onChange={(e) => {
+              const copy = [...testcases];
+              copy[i].visibility = e.target.value;
+              setTestcases(copy);
+            }}
+          >
+            <option value="sample">sample</option>
+            <option value="hidden">hidden</option>
+          </select>
+
+          <input
+            type="number"
+            value={tc.weight}
+            onChange={(e) => {
+              const copy = [...testcases];
+              copy[i].weight = Number(e.target.value);
+              setTestcases(copy);
+            }}
+          />
+        </div>
+      ))}
+
+      <button onClick={addTestcase}>Add Testcase</button>
+
+      <br /><br />
+
+      <button onClick={handleSave} disabled={saving}>
         {saving ? "Saving..." : "Save Problem"}
       </button>
     </div>

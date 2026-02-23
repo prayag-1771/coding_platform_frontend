@@ -101,62 +101,66 @@ export default function StudentAIGeneratePage() {
   }
 
   async function handleSave() {
-    if (!title.trim() || !statement.trim()) {
-      alert("Title and statement required");
-      return;
-    }
-
-    const cleaned = testcases.filter(
-      (tc) => tc.stdin.trim() && tc.expected.trim()
-    );
-
-    if (cleaned.length === 0) {
-      alert("At least one valid testcase required");
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      const res = await fetch("/api/problems", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          statement,
-          difficulty,
-          compareMode,
-          testcases: cleaned,
-          timeLimitMs: 1000,
-          memoryLimitMb: 64,
-          tags: [],
-          starterCode: {},
-          visibility: "private",
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.error || "Save failed");
-        return;
-      }
-
-      alert("Problem saved for practice");
-      router.push("/student/dashboard");
-    } catch (err) {
-      console.error(err);
-      alert("Save error");
-    } finally {
-      setSaving(false);
-    }
+  if (!title.trim() || !statement.trim()) {
+    alert("Title and statement required");
+    return;
   }
+
+  const cleaned = testcases.filter(
+    (tc) => tc.stdin.trim() && tc.expected.trim()
+  );
+
+  if (cleaned.length === 0) {
+    alert("At least one valid testcase required");
+    return;
+  }
+
+  try {
+    setSaving(true);
+
+    const res = await fetch("/api/problems", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        statement,
+        difficulty,
+        compareMode,
+        testcases: cleaned,
+        timeLimitMs: 1000,
+        memoryLimitMb: 64,
+        tags: [],
+        starterCode: {
+          javascript: "",
+          python: "",
+          cpp: "",
+        },
+        visibility: "private",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Save failed");
+      return;
+    }
+
+    alert("Problem saved for practice");
+    router.push("/my-problems");
+
+  } catch (err) {
+    console.error(err);
+    alert("Save error");
+  } finally {
+    setSaving(false);
+  }
+}
 
   return (
   <div className="min-h-screen bg-gray-50 py-10">
     <div className="max-w-5xl mx-auto bg-white p-8 rounded-2xl shadow space-y-8">
 
-      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">
           AI Practice Generator
@@ -171,7 +175,6 @@ export default function StudentAIGeneratePage() {
         </button>
       </div>
 
-      {/* AI Idea Section */}
       <div className="border rounded-xl p-6 bg-gray-50 space-y-4">
         <h2 className="text-lg font-semibold">Generate with AI</h2>
 
@@ -238,7 +241,6 @@ export default function StudentAIGeneratePage() {
         </div>
       </div>
 
-      {/* Testcases */}
       <div className="border rounded-xl p-6 space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-semibold">Testcases</h2>

@@ -35,18 +35,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ STANDARDIZED JWT PAYLOAD
     const token = signToken({
-      _id: user._id.toString(),
-      role: user.role,
-    });
+  _id: user._id.toString(), 
+  role: user.role,
+});
 
     const response = NextResponse.json({
       message: "Login successful",
-      user: {
-        _id: user._id.toString(),
-        role: user.role,
-      },
     });
 
     response.cookies.set({

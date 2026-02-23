@@ -33,6 +33,20 @@ const ProblemSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    // 🔥 ADD THIS
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    visibility: {
+      type: String,
+      enum: ["private", "classroom", "public"],
+      default: "private",
+    },
+
     difficulty: {
       type: String,
       enum: ["easy", "medium", "hard"],
