@@ -97,7 +97,7 @@ Preferred language: ${language || "javascript"}
     } catch (err) {
       console.error("OLLAMA PARSE ERROR:", aiResponse);
       return NextResponse.json(
-        { error: "Model did not return valid JSON", raw: aiResponse },
+        { error: "Model did not return valid JSON" },
         { status: 500 }
       );
     }
@@ -136,7 +136,7 @@ Preferred language: ${language || "javascript"}
   } catch (err) {
     console.error("OLLAMA ERROR:", err);
     return NextResponse.json(
-      { error: err?.message || String(err) },
+      { error: "Failed to generate problem" },
       { status: 500 }
     );
   }
