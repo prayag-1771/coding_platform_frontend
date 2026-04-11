@@ -138,7 +138,13 @@ Preferred language: ${language || "javascript"}
 async function callYourLLM(systemPrompt, userPrompt) {
   const prompt = `${systemPrompt}\n\n${userPrompt}`;
 
-  const res = await fetch("http://localhost:11434/api/generate", {
+  const ollamaUrl = process.env.OLLAMA_API_URL;
+
+  if (!ollamaUrl) {
+    throw new Error("OLLAMA_API_URL is not configured");
+  }
+
+  const res = await fetch(ollamaUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
