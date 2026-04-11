@@ -33,6 +33,14 @@ function pickAllowedUpdateFields(body: Record<string, unknown>) {
   return payload;
 }
 
+function getVerifiedUser(token: string) {
+  try {
+    return verifyToken(token);
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -69,13 +77,7 @@ export async function GET(
         );
       }
     } else {
-      let user: any = null;
-
-      try {
-        user = verifyToken(token);
-      } catch {
-        user = null;
-      }
+      const user = getVerifiedUser(token);
 
       if (!user) {
         return NextResponse.json(
@@ -142,7 +144,7 @@ export async function PUT(
       );
     }
 
-    const user = verifyToken(token);
+    const user = getVerifiedUser(token);
     if (!user) {
       return NextResponse.json(
         { error: "Invalid token" },
@@ -212,7 +214,7 @@ export async function DELETE(
       );
     }
 
-    const user = verifyToken(token);
+    const user = getVerifiedUser(token);
     if (!user) {
       return NextResponse.json(
         { error: "Invalid token" },
