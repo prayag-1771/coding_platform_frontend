@@ -38,9 +38,16 @@ export async function submitJob(
 }
 
 
-export async function pollJobResult(jobId) {
+export async function pollJobResult(jobId, options = {}) {
+  const maxAttempts = options.maxAttempts ?? 75;
+  const pollIntervalMs = options.pollIntervalMs ?? 800;
+  const timeoutMs = options.timeoutMs ?? 60000;
+  const startedAt = Date.now();
 
-  while (true) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    if (Date.now() - startedAt > timeoutMs) {
+      throw new Error("Executor job timed out while waiting for results");
+    }
 
     const res = await fetch(`/api/executor/result/${jobId}`);
 
@@ -62,10 +69,12 @@ export async function pollJobResult(jobId) {
     }
 
     if (data.status === "QUEUED" || data.status === "RUNNING") {
-      await new Promise(r => setTimeout(r, 800));
+      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
       continue;
     }
 
     return data;
   }
+
+  throw new Error("Executor job did not finish after repeated polling");
 }
