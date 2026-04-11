@@ -50,6 +50,13 @@ export async function GET(req, context) {
       );
     }
 
+    if (assignment.createdBy?.toString() !== user._id) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json(assignment);
 
   } catch (err) {
@@ -86,7 +93,23 @@ export async function DELETE(req, context) {
 
     const { id } = await context.params;
 
-    await Assignment.findByIdAndDelete(id);
+    const assignment = await Assignment.findById(id);
+
+    if (!assignment) {
+      return NextResponse.json(
+        { error: "Assignment not found" },
+        { status: 404 }
+      );
+    }
+
+    if (assignment.createdBy?.toString() !== user._id) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    await assignment.deleteOne();
 
     return NextResponse.json({ success: true });
 
