@@ -3,6 +3,24 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+function createTestcaseId() {
+  return `tc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeTestcase(testcase: Record<string, unknown> = {}) {
+  return {
+    id: typeof testcase.id === "string" && testcase.id ? testcase.id : createTestcaseId(),
+    stdin: typeof testcase.stdin === "string" ? testcase.stdin : "",
+    expected: typeof testcase.expected === "string" ? testcase.expected : "",
+    visibility:
+      testcase.visibility === "sample" ? "sample" : "hidden",
+    weight:
+      typeof testcase.weight === "number" && Number.isFinite(testcase.weight)
+        ? testcase.weight
+        : 1,
+  };
+}
+
 export default function NewAuthorProblemClient() {
   const router = useRouter();
 
@@ -16,7 +34,7 @@ export default function NewAuthorProblemClient() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const [testcases, setTestcases] = useState([
-    { stdin: "", expected: "", visibility: "sample", weight: 1 },
+    normalizeTestcase({ visibility: "sample" }),
   ]);
 
   async function handleAIGenerate() {
@@ -52,8 +70,8 @@ export default function NewAuthorProblemClient() {
 
       setTestcases(
         Array.isArray(data.testcases) && data.testcases.length > 0
-          ? data.testcases
-          : [{ stdin: "", expected: "", visibility: "sample", weight: 1 }]
+          ? data.testcases.map((tc: Record<string, unknown>) => normalizeTestcase(tc))
+          : [normalizeTestcase({ visibility: "sample" })]
       );
     } catch (err) {
       console.error(err);
@@ -115,7 +133,7 @@ export default function NewAuthorProblemClient() {
   function addTestcase() {
     setTestcases([
       ...testcases,
-      { stdin: "", expected: "", visibility: "hidden", weight: 1 },
+      normalizeTestcase(),
     ]);
   }
 
@@ -192,7 +210,7 @@ export default function NewAuthorProblemClient() {
           <h2 className="text-xl font-semibold">Testcases</h2>
 
           {testcases.map((tc, i) => (
-            <div key={i} className="bg-[#0b0e14] border border-white/10 p-4 rounded-xl space-y-3">
+            <div key={tc.id} className="bg-[#0b0e14] border border-white/10 p-4 rounded-xl space-y-3">
               <textarea
                 placeholder="stdin"
                 value={tc.stdin}
