@@ -33,6 +33,15 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# nested coding project secrets
+coding/.env
+coding/.env*
+!coding/.env.example
+
+# nested coding project generated files
+coding/.next/
+coding/node_modules/
+
 # vercel
 .vercel
 
