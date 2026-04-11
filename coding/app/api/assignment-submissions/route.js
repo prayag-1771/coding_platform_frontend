@@ -6,8 +6,15 @@ import AssignmentSubmission from "@/models/AssignmentSubmission";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { getCsrfError } from "@/lib/csrf";
 
 export async function POST(req) {
+  const csrfError = getCsrfError(req);
+
+  if (csrfError) {
+    return NextResponse.json({ error: csrfError }, { status: 403 });
+  }
+
   const rateLimit = checkRateLimit(req, {
     keyPrefix: "assignment:submit",
     limit: 20,

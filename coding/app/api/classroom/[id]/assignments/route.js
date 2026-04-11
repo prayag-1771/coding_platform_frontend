@@ -7,8 +7,15 @@ import Classroom from "@/models/Classroom";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import mongoose from "mongoose";
+import { getCsrfError } from "@/lib/csrf";
 
 export async function POST(req, context) {
+  const csrfError = getCsrfError(req);
+
+  if (csrfError) {
+    return NextResponse.json({ error: csrfError }, { status: 403 });
+  }
+
   try {
     await connectDB();
 

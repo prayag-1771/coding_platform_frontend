@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
+import { getCsrfError } from "@/lib/csrf";
 
 import Assignment from "@/models/Assignment";
 import mongoose from "mongoose";
@@ -49,6 +50,12 @@ export async function GET() {
 }
 
 export async function POST(req) {
+  const csrfError = getCsrfError(req);
+
+  if (csrfError) {
+    return NextResponse.json({ error: csrfError }, { status: 403 });
+  }
+
   try {
     await connectDB();
 

@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { getCsrfError } from "@/lib/csrf";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 8;
@@ -20,6 +21,12 @@ function isStrongPassword(password) {
 }
 
 export async function POST(req) {
+  const csrfError = getCsrfError(req);
+
+  if (csrfError) {
+    return NextResponse.json({ error: csrfError }, { status: 403 });
+  }
+
   try {
     await connectDB();
 

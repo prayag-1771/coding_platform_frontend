@@ -3,10 +3,17 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { getCsrfError } from "@/lib/csrf";
 
 const SAFE_PROBLEM_ID_REGEX = /^[a-zA-Z0-9_-]{1,64}$/;
 
 export async function POST(req) {
+  const csrfError = getCsrfError(req);
+
+  if (csrfError) {
+    return NextResponse.json({ error: csrfError }, { status: 403 });
+  }
+
   try {
     const problem = await req.json();
 

@@ -1,11 +1,18 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
+import { getCsrfError } from "@/lib/csrf";
 
 const BASE_URL = process.env.EXECUTOR_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
 const API_KEY = process.env.EXECUTOR_API_KEY || process.env.NEXT_PUBLIC_API_KEY;
 
 export async function POST(req) {
+  const csrfError = getCsrfError(req);
+
+  if (csrfError) {
+    return NextResponse.json({ error: csrfError }, { status: 403 });
+  }
+
   try {
     if (!BASE_URL || !API_KEY) {
       return NextResponse.json(

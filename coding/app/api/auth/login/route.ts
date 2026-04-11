@@ -5,9 +5,16 @@ import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import { signToken } from "@/lib/jwt";
+import { checkRateLimit } from "@/lib/rateLimit";
+import { getCsrfError } from "@/lib/csrf";
 
 export async function POST(req: Request) {
-import { checkRateLimit } from "@/lib/rateLimit";
+  const csrfError = getCsrfError(req);
+
+  if (csrfError) {
+    return NextResponse.json({ error: csrfError }, { status: 403 });
+  }
+
   try {
     await connectDB();
   const rateLimit = checkRateLimit(req, {

@@ -8,6 +8,7 @@ import "@/models/register";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
 import mongoose from "mongoose";
+import { getCsrfError } from "@/lib/csrf";
 
 const ALLOWED_PROBLEM_FIELDS = [
   "title",
@@ -135,6 +136,12 @@ export async function GET(req: Request) {
    CREATE PROBLEM
 ========================= */
 export async function POST(req: Request) {
+  const csrfError = getCsrfError(req);
+
+  if (csrfError) {
+    return NextResponse.json({ error: csrfError }, { status: 403 });
+  }
+
   try {
     await connectDB();
 
