@@ -34,6 +34,50 @@ function pickAllowedProblemFields(body: Record<string, unknown>) {
   return payload;
 }
 
+function normalizeTestcases(testcases: unknown) {
+  if (!Array.isArray(testcases)) {
+    return { error: "Testcases must be an array" as const };
+  }
+
+  const normalized = [];
+
+  for (let index = 0; index < testcases.length; index += 1) {
+    const testcase = testcases[index];
+
+    if (!testcase || typeof testcase !== "object") {
+      return { error: `Invalid testcase at index ${index}` as const };
+    }
+
+    const record = testcase as Record<string, unknown>;
+    const input = record.input ?? record.stdin ?? "";
+    const expectedOutput = record.expectedOutput ?? record.expected ?? "";
+    const visibility = record.visibility;
+    const weight = record.weight;
+
+    if (typeof input !== "string" || typeof expectedOutput !== "string") {
+      return { error: `Invalid testcase values at index ${index}` as const };
+    }
+
+    if (visibility !== undefined && visibility !== "sample" && visibility !== "hidden") {
+      return { error: `Invalid testcase visibility at index ${index}` as const };
+    }
+
+    if (weight !== undefined && (typeof weight !== "number" || !Number.isFinite(weight) || weight <= 0)) {
+      return { error: `Invalid testcase weight at index ${index}` as const };
+    }
+
+    normalized.push({
+      id: typeof record.id === "string" && record.id.trim() ? record.id : `t${index + 1}`,
+      input,
+      expectedOutput,
+      visibility: visibility === "sample" ? "sample" : "hidden",
+      weight: typeof weight === "number" ? weight : 1,
+    });
+  }
+
+  return { testcases: normalized } as const;
+}
+
 
 
 /* =========================
@@ -166,6 +210,15 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
+    const testcaseValidation = normalizeTestcases(body.testcases);
+
+    if ("error" in testcaseValidation) {
+      return NextResponse.json(
+        { error: testcaseValidation.error },
+        { status: 400 }
+      );
+    }
+
     let visibility = "private";
 
     if (user.role === "author") {
@@ -182,6 +235,8 @@ export async function POST(req: Request) {
     }
 
     const safeBody = pickAllowedProblemFields(body);
+
+    safeBody.testcases = testcaseValidation.testcases;
 
     const problem = await Problem.create({
       ...safeBody,
