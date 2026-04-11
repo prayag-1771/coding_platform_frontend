@@ -124,8 +124,6 @@ export default function EditorPage() {
 
 
   async function handleRun() {
-    console.log("RUN CLICKED");
-
     if (!editorRef.current) return;
     if (!currentProblem || !currentProblem.testcases) return;
     if (isRunning) return;
