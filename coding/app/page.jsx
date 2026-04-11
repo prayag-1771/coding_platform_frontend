@@ -18,8 +18,10 @@ import { runTestsJS } from "../components/runTestsJS";
 import { handleSubmit } from "../components/HandleSubmit";
 import BestScoreBadge from "../components/BestScoreBadge";
 import { runRemoteTests } from "../components/runRemoteTests";
+import { useRouter } from "next/navigation";
 
 export default function EditorPage() {
+  const router = useRouter();
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [output, setOutput] = useState("");
   const [terminalHeight, setTerminalHeight] = useState(200);
@@ -703,14 +705,14 @@ export default function EditorPage() {
             {!authLoading && !user && (
               <>
                 <button
-                  onClick={() => window.location.href = "/login"}
+                  onClick={() => router.push("/login")}
                   className="px-4 py-2 rounded-lg bg-white text-black font-semibold"
                 >
                   Login
                 </button>
 
                 <button
-                  onClick={() => window.location.href = "/dashboard"}
+                  onClick={() => router.push("/dashboard")}
                   className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20"
                 >
                   Dashboard
@@ -758,16 +760,16 @@ export default function EditorPage() {
                 <button
                   onClick={() => {
                     if (!user) {
-                      window.location.href = "/login";
+                      router.push("/login");
                       return;
                     }
 
                     if (user.role === "student") {
-                      window.location.href = "/student";
+                      router.push("/student");
                     } else if (user.role === "teacher") {
-                      window.location.href = "/teacher";
+                      router.push("/teacher");
                     } else if (user.role === "author") {
-                      window.location.href = "/author";
+                      router.push("/author");
                     }
                   }}
                   className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20"
@@ -779,7 +781,8 @@ export default function EditorPage() {
                 <button
                   onClick={async () => {
                     await fetch("/api/logout", { method: "POST" });
-                    window.location.reload();
+                    router.refresh();
+                    router.push("/");
                   }}
                   className="px-4 py-2 rounded-lg bg-red-500 text-white"
                 >
