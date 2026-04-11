@@ -37,13 +37,16 @@ export default function StudentAIGeneratePage() {
   >("trimmed");
   const [isGenerating, setIsGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"error" | "success" | "">("");
   const [testcases, setTestcases] = useState<Testcase[]>([
     normalizeTestcase({ visibility: "sample" }),
   ]);
 
   async function handleAIGenerate() {
     if (!idea.trim()) {
-      alert("Enter idea first");
+      setMessage("Enter idea first");
+      setMessageType("error");
       return;
     }
 
@@ -63,9 +66,13 @@ export default function StudentAIGeneratePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "AI generation failed");
+        setMessage(data.error || "AI generation failed");
+        setMessageType("error");
         return;
       }
+
+      setMessage("Problem generated successfully.");
+      setMessageType("success");
 
       setTitle(data.title || "");
       setStatement(data.statement || "");
@@ -81,7 +88,8 @@ export default function StudentAIGeneratePage() {
       }
     } catch (err) {
       console.error(err);
-      alert("AI error");
+      setMessage("AI error");
+      setMessageType("error");
     } finally {
       setIsGenerating(false);
     }
@@ -112,7 +120,8 @@ export default function StudentAIGeneratePage() {
 
   async function handleSave() {
     if (!title.trim() || !statement.trim()) {
-      alert("Title and statement required");
+      setMessage("Title and statement required");
+      setMessageType("error");
       return;
     }
 
@@ -121,7 +130,8 @@ export default function StudentAIGeneratePage() {
     );
 
     if (cleaned.length === 0) {
-      alert("At least one valid testcase required");
+      setMessage("At least one valid testcase required");
+      setMessageType("error");
       return;
     }
 
@@ -152,15 +162,18 @@ export default function StudentAIGeneratePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Save failed");
+        setMessage(data.error || "Save failed");
+        setMessageType("error");
         return;
       }
 
-      alert("Problem saved for practice");
+      setMessage("Problem saved for practice");
+      setMessageType("success");
       router.push("/my-problems");
     } catch (err) {
       console.error(err);
-      alert("Save error");
+      setMessage("Save error");
+      setMessageType("error");
     } finally {
       setSaving(false);
     }
@@ -180,6 +193,12 @@ export default function StudentAIGeneratePage() {
             {saving ? "Saving..." : "Save for Practice"}
           </button>
         </div>
+
+        {message && (
+          <p className={messageType === "error" ? "text-red-400" : "text-green-400"}>
+            {message}
+          </p>
+        )}
 
         <div className="border border-white/10 rounded-xl p-6 bg-white/5 space-y-4">
           <h2 className="text-lg font-semibold">Generate with AI</h2>

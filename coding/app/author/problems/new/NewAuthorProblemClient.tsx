@@ -32,6 +32,8 @@ export default function NewAuthorProblemClient() {
   const [visibility, setVisibility] = useState("public");
   const [saving, setSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"error" | "success" | "">("");
 
   const [testcases, setTestcases] = useState([
     normalizeTestcase({ visibility: "sample" }),
@@ -39,7 +41,8 @@ export default function NewAuthorProblemClient() {
 
   async function handleAIGenerate() {
     if (!idea.trim()) {
-      alert("Enter an idea first.");
+      setMessage("Enter an idea first.");
+      setMessageType("error");
       return;
     }
 
@@ -59,9 +62,13 @@ export default function NewAuthorProblemClient() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "AI generation failed");
+        setMessage(data.error || "AI generation failed");
+        setMessageType("error");
         return;
       }
+
+      setMessage("Problem generated successfully.");
+      setMessageType("success");
 
       setTitle(data.title || "");
       setStatement(data.statement || "");
@@ -75,7 +82,8 @@ export default function NewAuthorProblemClient() {
       );
     } catch (err) {
       console.error(err);
-      alert("AI generation error");
+      setMessage("AI generation error");
+      setMessageType("error");
     } finally {
       setIsGenerating(false);
     }
@@ -90,7 +98,8 @@ export default function NewAuthorProblemClient() {
       );
 
       if (cleanedTestcases.length === 0) {
-        alert("At least one valid testcase required.");
+        setMessage("At least one valid testcase required.");
+        setMessageType("error");
         setSaving(false);
         return;
       }
@@ -116,15 +125,18 @@ export default function NewAuthorProblemClient() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Failed to save");
+        setMessage(data.error || "Failed to save");
+        setMessageType("error");
         return;
       }
 
-      alert("Saved successfully!");
+      setMessage("Saved successfully!");
+      setMessageType("success");
       router.push("/author");
     } catch (err) {
       console.error(err);
-      alert("Error saving");
+      setMessage("Error saving");
+      setMessageType("error");
     } finally {
       setSaving(false);
     }
@@ -141,6 +153,12 @@ export default function NewAuthorProblemClient() {
     <div className="min-h-screen w-full bg-[#05060f] text-white">
       <div className="p-10 max-w-5xl mx-auto space-y-8">
         <h1 className="text-3xl font-bold">Create Public Problem</h1>
+
+        {message && (
+          <p className={messageType === "error" ? "text-red-400" : "text-green-400"}>
+            {message}
+          </p>
+        )}
 
         <div className="space-y-3 bg-[#0b0e14] border border-white/10 p-6 rounded-xl">
           <textarea
