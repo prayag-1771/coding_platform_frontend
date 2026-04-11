@@ -31,7 +31,9 @@ export async function GET() {
       );
     }
 
-    const assignments = await Assignment.find()
+    const assignments = await Assignment.find({
+      createdBy: new mongoose.Types.ObjectId(user._id),
+    })
       .populate("problems", "title difficulty")
       .sort({ createdAt: -1 });
 
@@ -92,7 +94,8 @@ export async function POST(req) {
       title,
       description,
       deadline,
-      problems
+      problems,
+      createdBy: new mongoose.Types.ObjectId(user._id),
     });
 
     return NextResponse.json(assignment, { status: 201 });
