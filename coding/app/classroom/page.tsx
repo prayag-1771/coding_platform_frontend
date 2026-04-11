@@ -16,10 +16,16 @@ export default async function ClassroomPage() {
   }
 
   await connectDB();
+  let assignments: any[] = [];
+  let loadError = false;
 
-  const assignments = await Assignment.find()
-    .sort({ createdAt: -1 })
-    .lean();
+  try {
+    assignments = await Assignment.find()
+      .sort({ createdAt: -1 })
+      .lean();
+  } catch {
+    loadError = true;
+  }
 
   return (
     <div style={{ padding: 40 }}>
@@ -42,6 +48,16 @@ export default async function ClassroomPage() {
       </Link>
 
       <ul>
+        {loadError && (
+          <li style={{ color: "red" }}>
+            Failed to load assignments. Please refresh and try again.
+          </li>
+        )}
+
+        {!loadError && assignments.length === 0 && (
+          <li style={{ color: "gray" }}>No assignments found.</li>
+        )}
+
         {assignments.map((a: any) => (
           <li key={a._id} style={{ marginBottom: 10 }}>
             <Link
