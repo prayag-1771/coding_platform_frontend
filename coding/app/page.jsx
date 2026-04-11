@@ -20,6 +20,23 @@ import BestScoreBadge from "../components/BestScoreBadge";
 import { runRemoteTests } from "../components/runRemoteTests";
 import { useRouter } from "next/navigation";
 
+function parseDeadline(deadlineValue) {
+  if (!deadlineValue) return null;
+
+  const raw = String(deadlineValue).trim();
+  if (!raw) return null;
+
+  const hasTimezone = /([zZ]|[+-]\d{2}:\d{2})$/.test(raw);
+  const normalized = hasTimezone ? raw : `${raw}Z`;
+  const parsed = new Date(normalized);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
 export default function EditorPage() {
   const router = useRouter();
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
@@ -176,7 +193,11 @@ export default function EditorPage() {
 
   const isExpired =
     assignment &&
-    new Date(assignment.deadline) < new Date();
+    (() => {
+      const deadline = parseDeadline(assignment.deadline);
+      if (!deadline) return false;
+      return deadline.getTime() < Date.now();
+    })();
 
 
   useEffect(() => {

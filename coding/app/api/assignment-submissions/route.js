@@ -8,6 +8,23 @@ import { verifyToken } from "@/lib/jwt";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { getCsrfError } from "@/lib/csrf";
 
+function parseDeadline(deadlineValue) {
+  if (!deadlineValue) return null;
+
+  const raw = String(deadlineValue).trim();
+  if (!raw) return null;
+
+  const hasTimezone = /([zZ]|[+-]\d{2}:\d{2})$/.test(raw);
+  const normalized = hasTimezone ? raw : `${raw}Z`;
+  const parsed = new Date(normalized);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
 export async function POST(req) {
   const csrfError = getCsrfError(req);
 
@@ -85,7 +102,9 @@ export async function POST(req) {
       );
     }
 
-    if (new Date(assignment.deadline) < new Date()) {
+    const deadline = parseDeadline(assignment.deadline);
+
+    if (deadline && deadline.getTime() < Date.now()) {
       return NextResponse.json(
         { error: "Assignment deadline has passed" },
         { status: 403 }
