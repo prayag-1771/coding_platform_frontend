@@ -6,7 +6,7 @@ import { connectDB } from "@/lib/mongodb";
 import Problem from "@/models/Problem";
 import "@/models/register";
 import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/jwt";
+import { verifyToken, type TokenPayload } from "@/lib/jwt";
 import mongoose from "mongoose";
 import { getCsrfError } from "@/lib/csrf";
 
@@ -50,13 +50,13 @@ export async function GET(req: Request) {
     const visibility = searchParams.get("visibility");
     const scope = searchParams.get("scope");
 
-    let filter: any = {};
+    let filter: Record<string, unknown> = {};
 
     // 🔓 GUEST → only public
     if (!token) {
       filter = { visibility: "public" };
     } else {
-      let user: any = null;
+      let user: TokenPayload | null = null;
 
       try {
         user = verifyToken(token);
@@ -152,7 +152,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let user: any = null;
+    let user: TokenPayload | null = null;
 
     try {
       user = verifyToken(token);
