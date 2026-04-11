@@ -7,8 +7,29 @@ import User from "@/models/User";
 import { signToken } from "@/lib/jwt";
 
 export async function POST(req: Request) {
+import { checkRateLimit } from "@/lib/rateLimit";
   try {
     await connectDB();
+  const rateLimit = checkRateLimit(req, {
+    keyPrefix: "auth:login",
+    limit: 10,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        message: "Too many login attempts. Please try again later.",
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rateLimit.retryAfterSeconds),
+        },
+      }
+    );
+  }
+
 
     const { email, password } = await req.json();
 

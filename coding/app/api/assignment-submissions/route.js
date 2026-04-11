@@ -5,8 +5,27 @@ import { connectDB } from "@/lib/mongodb";
 import AssignmentSubmission from "@/models/AssignmentSubmission";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/jwt";
+import { checkRateLimit } from "@/lib/rateLimit";
 
 export async function POST(req) {
+  const rateLimit = checkRateLimit(req, {
+    keyPrefix: "assignment:submit",
+    limit: 20,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many submission attempts. Please slow down." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(rateLimit.retryAfterSeconds),
+        },
+      }
+    );
+  }
+
   try {
     await connectDB();
 
