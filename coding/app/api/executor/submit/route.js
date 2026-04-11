@@ -4,9 +4,17 @@ import { NextResponse } from "next/server";
 import { getCsrfError } from "@/lib/csrf";
 
 const BASE_URL = process.env.EXECUTOR_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
-const API_KEY = process.env.EXECUTOR_API_KEY || process.env.NEXT_PUBLIC_API_KEY;
 
 export async function POST(req) {
+  const API_KEY = process.env.EXECUTOR_API_KEY;
+  
+  if (!API_KEY) {
+    return NextResponse.json(
+      { error: "Executor service is not configured" },
+      { status: 503 }
+    );
+  }
+
   const csrfError = getCsrfError(req);
 
   if (csrfError) {
@@ -14,7 +22,7 @@ export async function POST(req) {
   }
 
   try {
-    if (!BASE_URL || !API_KEY) {
+    if (!BASE_URL) {
       return NextResponse.json(
         { error: "Executor is not configured" },
         { status: 500 }
