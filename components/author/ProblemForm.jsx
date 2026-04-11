@@ -3,20 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-function createTestcaseId() {
-  return `tc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function normalizeTestcase(testcase = {}) {
-  return {
-    id: testcase.id || createTestcaseId(),
-    input: testcase.input || "",
-    expectedOutput: testcase.expectedOutput || "",
-    isSample: Boolean(testcase.isSample),
-    weight: testcase.weight ?? 1,
-  };
-}
-
 export default function ProblemForm({ initialData = {}, isEdit = false }) {
   const router = useRouter();
 
@@ -33,7 +19,7 @@ export default function ProblemForm({ initialData = {}, isEdit = false }) {
       python: "",
       cpp: "",
     },
-    testcases: (initialData.testcases || []).map(normalizeTestcase),
+    testcases: initialData.testcases || [],
   });
 
   function handleChange(e) {
@@ -45,7 +31,7 @@ export default function ProblemForm({ initialData = {}, isEdit = false }) {
       ...form,
       testcases: [
         ...form.testcases,
-        normalizeTestcase(),
+        { input: "", expectedOutput: "", isSample: false, weight: 1 },
       ],
     });
   }
@@ -146,7 +132,7 @@ export default function ProblemForm({ initialData = {}, isEdit = false }) {
       </button>
 
       {form.testcases.map((tc, i) => (
-        <div key={tc.id} className="border p-4 space-y-2">
+        <div key={i} className="border p-4 space-y-2">
           <textarea
             placeholder="Input"
             value={tc.input}
