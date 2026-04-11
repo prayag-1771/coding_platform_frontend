@@ -96,12 +96,37 @@ export async function POST(req) {
         { status: 403 }
       );
     }
+
+    const parsedScore = Number(score);
+    const parsedTotal = Number(total);
+
+    if (!Number.isFinite(parsedScore) || !Number.isFinite(parsedTotal)) {
+      return NextResponse.json(
+        { error: "Invalid score payload" },
+        { status: 400 }
+      );
+    }
+
+    if (!Number.isInteger(parsedScore) || !Number.isInteger(parsedTotal)) {
+      return NextResponse.json(
+        { error: "Score and total must be integers" },
+        { status: 400 }
+      );
+    }
+
+    if (parsedTotal <= 0 || parsedScore < 0 || parsedScore > parsedTotal) {
+      return NextResponse.json(
+        { error: "Score range is invalid" },
+        { status: 400 }
+      );
+    }
+
     await AssignmentSubmission.create({
       assignmentId,
       problemId,
       userId: user._id,
-      score,
-      total,
+      score: parsedScore,
+      total: parsedTotal,
     });
 
     return NextResponse.json({ success: true });
