@@ -33,7 +33,12 @@ export async function GET() {
     // 🔥 Cast string ID to ObjectId
     const userId = new mongoose.Types.ObjectId(user._id);
 
-    let filter: any = {
+    interface ProblemFilter {
+      ownerId: mongoose.Types.ObjectId;
+      visibility?: string;
+    }
+
+    let filter: ProblemFilter = {
       ownerId: userId,
     };
 
