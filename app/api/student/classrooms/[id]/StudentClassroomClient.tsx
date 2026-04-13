@@ -11,7 +11,15 @@ export default function StudentClassroomClient({ classroomId }: any) {
       .then(data => setClassroom(data));
   }, [classroomId]);
 
-  if (!classroom) return <div className="p-8">Loading...</div>;
+  if (!classroom)
+    return (
+      <div className="min-h-screen p-8 space-y-6 bg-[#05060f] text-white">
+        <div className="h-10 w-64 bg-white/10 rounded animate-pulse" />
+        <div className="h-7 w-36 bg-white/10 rounded animate-pulse" />
+        <div className="h-20 w-full bg-white/5 border border-white/10 rounded animate-pulse" />
+        <div className="h-20 w-full bg-white/5 border border-white/10 rounded animate-pulse" />
+      </div>
+    );
 
   return (
     <div className="min-h-screen p-8 space-y-6">

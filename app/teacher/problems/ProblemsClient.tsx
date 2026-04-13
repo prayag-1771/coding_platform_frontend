@@ -37,8 +37,16 @@ export default function ProblemsClient() {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-[#05060f] text-white p-8">
-        Loading...
+      <div className="min-h-screen w-full bg-[#05060f] text-white p-8 space-y-8">
+        <div className="flex justify-between items-center">
+          <div className="h-10 w-72 bg-white/10 rounded animate-pulse" />
+          <div className="h-10 w-36 bg-white/10 rounded animate-pulse" />
+        </div>
+        <div className="space-y-4">
+          <div className="h-20 w-full bg-white/5 border border-white/10 rounded-lg animate-pulse" />
+          <div className="h-20 w-full bg-white/5 border border-white/10 rounded-lg animate-pulse" />
+          <div className="h-20 w-full bg-white/5 border border-white/10 rounded-lg animate-pulse" />
+        </div>
       </div>
     );
 

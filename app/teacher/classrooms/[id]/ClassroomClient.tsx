@@ -30,8 +30,28 @@ export default function ClassroomClient({ classroomId }: any) {
 
   if (!classroom)
     return (
-      <div className="min-h-screen bg-[#05060f] text-white p-8">
-        Loading...
+      <div className="min-h-screen w-full bg-[#05060f] text-white p-8 space-y-10">
+        <div className="h-10 w-64 bg-white/10 rounded animate-pulse" />
+
+        <div className="bg-[#0b0e14] border border-white/10 rounded-xl p-6 space-y-4">
+          <div className="h-7 w-32 bg-white/10 rounded animate-pulse" />
+          <div className="flex gap-3">
+            <div className="h-10 flex-1 bg-white/10 rounded animate-pulse" />
+            <div className="h-10 w-32 bg-white/10 rounded animate-pulse" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-10 w-full bg-white/5 rounded animate-pulse" />
+            <div className="h-10 w-full bg-white/5 rounded animate-pulse" />
+          </div>
+        </div>
+
+        <div className="bg-[#0b0e14] border border-white/10 rounded-xl p-6 space-y-4">
+          <div className="h-7 w-48 bg-white/10 rounded animate-pulse" />
+          <div className="h-10 w-full bg-white/10 rounded animate-pulse" />
+          <div className="h-10 w-full bg-white/10 rounded animate-pulse" />
+          <div className="h-24 w-full bg-white/5 rounded animate-pulse" />
+          <div className="h-10 w-44 bg-white/10 rounded animate-pulse" />
+        </div>
       </div>
     );
 

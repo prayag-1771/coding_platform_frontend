@@ -13,8 +13,14 @@ export default function AssignmentClient({ assignmentId }: any) {
 
   if (!assignment)
     return (
-      <div className="min-h-screen bg-[#05060f] text-white p-8">
-        Loading...
+      <div className="min-h-screen bg-[#05060f] text-white p-8 space-y-8">
+        <div className="h-10 w-72 bg-white/10 rounded animate-pulse" />
+        <div className="h-5 w-56 bg-white/10 rounded animate-pulse" />
+        <div className="space-y-4">
+          <div className="h-20 w-full bg-white/5 border border-white/10 rounded animate-pulse" />
+          <div className="h-20 w-full bg-white/5 border border-white/10 rounded animate-pulse" />
+          <div className="h-20 w-full bg-white/5 border border-white/10 rounded animate-pulse" />
+        </div>
       </div>
     );
 

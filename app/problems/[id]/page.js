@@ -30,7 +30,21 @@ export default function ProblemPage({ params }) {
   }, [id]);
 
   if (error) return <div style={{ padding: 20 }}>{error}</div>;
-  if (!problem) return <div style={{ padding: 20 }}>Loading...</div>;
+  if (!problem)
+    return (
+      <div className="min-h-screen bg-[#05060f] text-white p-8 max-w-4xl mx-auto space-y-6">
+        <div className="h-10 w-72 bg-white/10 rounded animate-pulse" />
+        <div className="h-5 w-40 bg-white/10 rounded animate-pulse" />
+        <div className="space-y-2">
+          <div className="h-4 w-full bg-white/10 rounded animate-pulse" />
+          <div className="h-4 w-11/12 bg-white/10 rounded animate-pulse" />
+          <div className="h-4 w-4/5 bg-white/10 rounded animate-pulse" />
+        </div>
+        <div className="h-6 w-48 bg-white/10 rounded animate-pulse" />
+        <div className="h-24 w-full bg-white/5 border border-white/10 rounded animate-pulse" />
+        <div className="h-24 w-full bg-white/5 border border-white/10 rounded animate-pulse" />
+      </div>
+    );
 
   return (
     <div style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>

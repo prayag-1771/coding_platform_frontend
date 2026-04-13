@@ -13,8 +13,12 @@ export default function StudentClassroomClient({ classroomId }: any) {
 
   if (!classroom)
     return (
-      <div className="min-h-screen bg-[#05060f] text-white p-8">
-        Loading...
+      <div className="min-h-screen bg-[#05060f] text-white p-8 space-y-6">
+        <div className="h-10 w-64 bg-white/10 rounded animate-pulse" />
+        <div className="h-7 w-36 bg-white/10 rounded animate-pulse" />
+        <div className="h-24 w-full bg-white/5 border border-white/10 rounded-lg animate-pulse" />
+        <div className="h-24 w-full bg-white/5 border border-white/10 rounded-lg animate-pulse" />
+        <div className="h-24 w-full bg-white/5 border border-white/10 rounded-lg animate-pulse" />
       </div>
     );
 

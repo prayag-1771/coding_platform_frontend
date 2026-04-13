@@ -96,8 +96,22 @@ export default function EditProblemClient() {
 
   if (loading)
     return (
-      <div className="fixed inset-0 bg-[#05060f] text-white flex items-center justify-center">
-        Loading...
+      <div className="fixed inset-0 bg-[#05060f] text-white overflow-y-auto">
+        <div className="min-h-screen p-8 space-y-8 max-w-4xl mx-auto">
+          <div className="h-10 w-56 bg-white/10 rounded animate-pulse" />
+          <div className="h-10 w-full bg-white/10 rounded animate-pulse" />
+          <div className="h-40 w-full bg-white/10 rounded animate-pulse" />
+          <div className="h-10 w-40 bg-white/10 rounded animate-pulse" />
+          <div className="h-10 w-48 bg-white/10 rounded animate-pulse" />
+          <div className="h-10 w-full bg-white/10 rounded animate-pulse" />
+          <div className="flex gap-4">
+            <div className="h-10 w-40 bg-white/10 rounded animate-pulse" />
+            <div className="h-10 w-40 bg-white/10 rounded animate-pulse" />
+          </div>
+          <div className="h-32 w-full bg-white/10 rounded animate-pulse" />
+          <div className="h-10 w-44 bg-white/10 rounded animate-pulse" />
+          <div className="h-12 w-48 bg-white/10 rounded animate-pulse" />
+        </div>
       </div>
     );
 
