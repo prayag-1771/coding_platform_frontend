@@ -1,8 +1,13 @@
 import { connectDB } from "@/lib/mongodb";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import Assignment from "@/models/Assignment";
 import Link from "next/link";
 
 export default async function ClassroomPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
   await connectDB();
 
   const assignments = await Assignment.find()

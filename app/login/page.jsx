@@ -33,7 +33,11 @@ export default function LoginPage() {
       }
 
       if (data.user?.role === "author") {
-        router.push("/author/dashboard");
+        router.push("/author");
+      } else if (data.user?.role === "teacher") {
+        router.push("/teacher");
+      } else if (data.user?.role === "student") {
+        router.push("/student");
       } else {
         router.push("/");
       }

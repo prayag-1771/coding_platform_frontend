@@ -60,6 +60,7 @@ export default function EditorPage() {
   const terminalWrapRef = useRef(null);
   const questionWrapRef = useRef(null);
   const focusActiveRef = useRef(false);
+  const terminalWasClosedRef = useRef(false);
   const terminalRestoredRef = useRef(false);
   const editorRef = useRef(null);
 
@@ -390,6 +391,14 @@ export default function EditorPage() {
 
     if (!editorEl || !terminalEl || !questionEl) return;
 
+    // If entering editor focus with terminal closed, open it first so
+    // the editor gets the correct (shorter) height, then re-run.
+    if (editorFocus && !isTerminalOpen) {
+      terminalWasClosedRef.current = true;
+      setIsTerminalOpen(true);
+      return;
+    }
+
     gsap.killTweensOf([editorEl, terminalEl, questionEl]);
 
     const getRectWithoutTransform = (el) => {
@@ -531,12 +540,18 @@ export default function EditorPage() {
         },
         0
       );
+
+      if (terminalWasClosedRef.current) {
+        terminalWasClosedRef.current = false;
+        setIsTerminalOpen(false);
+      }
     }
 
     focusActiveRef.current = editorFocus || questionFocus;
 
     return () => tl.kill();
-  }, [editorFocus, questionFocus]);
+  }, [editorFocus, questionFocus, isTerminalOpen]);
+
 
   useEffect(() => {
     function handleResize() {
@@ -590,8 +605,41 @@ export default function EditorPage() {
 
   if (!currentProblem) {
     return (
-      <div className="h-screen flex items-center justify-center text-white">
-        Loading problem...
+      <div className="h-screen bg-[#05060f] text-white flex relative overflow-hidden">
+        {/* Question panel skeleton */}
+        <div className="w-1/2 p-6 border-r border-white/15 pr-4 space-y-6">
+          <div className="h-10 w-44 bg-white/5 rounded-lg animate-pulse" />
+          <div className="space-y-3">
+            <div className="h-8 w-3/4 bg-white/5 rounded-lg animate-pulse" />
+            <div className="h-4 w-full bg-white/5 rounded animate-pulse" />
+            <div className="h-4 w-5/6 bg-white/5 rounded animate-pulse" />
+            <div className="h-4 w-2/3 bg-white/5 rounded animate-pulse" />
+          </div>
+          <div className="space-y-2 pt-4">
+            <div className="h-5 w-24 bg-white/5 rounded animate-pulse" />
+            <div className="h-20 w-full bg-white/5 rounded-xl animate-pulse" />
+          </div>
+          <div className="space-y-2 pt-2">
+            <div className="h-5 w-28 bg-white/5 rounded animate-pulse" />
+            <div className="h-4 w-48 bg-white/5 rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Editor panel skeleton */}
+        <div className="w-1/2 flex flex-col h-screen pl-4">
+          <div className="shrink-0 p-4 border-b border-white/10 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-36 bg-white/5 rounded-lg animate-pulse" />
+              <div className="h-10 w-16 bg-white/5 rounded-lg animate-pulse" />
+            </div>
+            <div className="flex gap-3">
+              <div className="h-10 w-16 bg-white/5 rounded-lg animate-pulse" />
+              <div className="h-10 w-20 bg-white/5 rounded-lg animate-pulse" />
+              <div className="h-10 w-24 bg-white/5 rounded-lg animate-pulse" />
+            </div>
+          </div>
+          <div className="flex-1 m-4 bg-white/5 rounded-md animate-pulse" />
+        </div>
       </div>
     );
   }
@@ -717,7 +765,7 @@ export default function EditorPage() {
                 </button>
 
                 <button
-                  onClick={() => window.location.href = "/dashboard"}
+                  onClick={() => window.location.href = "/login"}
                   className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20"
                 >
                   Dashboard
@@ -851,6 +899,7 @@ export default function EditorPage() {
           className={`relative z-30 overflow-hidden
           ${questionFocus ? "blur-[2px] pointer-events-none" : ""}
           ${editorFocus || questionFocus ? "" : "mt-3 border border-white/10 rounded-md"}
+          ${(editorFocus || questionFocus) && terminalWasClosedRef.current ? "invisible" : ""}
         `}
         >
           {isTerminalOpen && (

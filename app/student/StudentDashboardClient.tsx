@@ -94,7 +94,13 @@ export default function StudentDashboardClient() {
         </h2>
 
         {loading ? (
-          <p className="text-gray-400">Loading classrooms...</p>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="border border-white/10 bg-white/5 p-4 rounded">
+                <div className="h-5 w-48 bg-white/10 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
         ) : classrooms.length === 0 ? (
           <p className="text-gray-400">
             You are not enrolled in any classrooms.

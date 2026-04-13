@@ -1,4 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
+import { getCurrentUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import Assignment from "@/models/Assignment";
 import AssignmentSubmission from "@/models/AssignmentSubmission";
 import Link from "next/link";
@@ -8,6 +10,9 @@ export default async function AssignmentPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
   await connectDB();
 
   const { id } = await params;

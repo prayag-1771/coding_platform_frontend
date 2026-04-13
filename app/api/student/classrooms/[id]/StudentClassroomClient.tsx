@@ -22,7 +22,7 @@ export default function StudentClassroomClient({ classroomId }: any) {
       {classroom.assignments.map((a: any) => (
         <div
           key={a._id}
-          onClick={() => window.location.href = `/assignment/${a._id}`}
+          onClick={() => window.location.href = `/assignments/${a._id}`}
           className="border p-4 rounded cursor-pointer"
         >
           <div className="font-semibold">{a.title}</div>

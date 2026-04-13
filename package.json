@@ -2,6 +2,21 @@
   "name": "code-platform-frontend",
   "version": "0.1.0",
   "private": true,
+  "description": "A role-based coding practice and classroom platform built with **Next.js (App Router)**, **React**, and **MongoDB**.  \r It supports students solving problems, teachers managing classrooms/assignments, and authors creating and curating coding challenges.",
+  "homepage": "https://github.com/prayag-1771/Evalence#readme",
+  "bugs": {
+    "url": "https://github.com/prayag-1771/Evalence/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prayag-1771/Evalence.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
